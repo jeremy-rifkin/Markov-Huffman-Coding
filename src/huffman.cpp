@@ -30,11 +30,7 @@ void huffman_table::print_table() {
 	for(int i = 0; i < 256; i++) {
 		if(encoding_table[i].length) {
 			printf("%c %d ", i, encoding_table[i].length);
-			for(int j = 0; j < encoding_table[i].length; j++) {
-				//int mask = 1 << (8 - j % 8 - 1);
-				//printf("%d", encoding_table[i].encoding[j / 8] & mask);
-				printf("%d", (encoding_table[i].encoding[j / 8] >> (8 - j % 8 - 1)) & 1);
-			}
+			encoding_table[i].print();
 			printf("\n");
 		}
 	}

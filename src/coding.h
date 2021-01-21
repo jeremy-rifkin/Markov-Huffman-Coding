@@ -9,6 +9,7 @@ struct encoding_descriptor {
 	encoding_descriptor(): length { 0 } {};
 	void push_bit(int b);
 	void pop_bit();
+	void print();
 };
 
 class i_coding_provider {
