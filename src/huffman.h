@@ -11,11 +11,13 @@ class huffman_table: public i_coding_provider {
 	int total = 0;
 public:
 	huffman_table(int* counts);
+	~huffman_table() override;
 	[[deprecated]] void increment(int c);
 	bool empty();
 	int get_total();
-	virtual void print_table() override;
-	virtual void print_tree() override;
+	void print_table() override;
+	void print_tree() override;
+	encoding_descriptor& get_encoding(unsigned char prev, unsigned char c) override;
 private:
 	void build_huffman_encoding_table(tree_node* node, encoding_descriptor& descriptor);
 	void build();

@@ -13,6 +13,10 @@ huffman_table::huffman_table(int* counts): huffman_tree { null } {
 	build();
 }
 
+huffman_table::~huffman_table() {
+	delete huffman_tree;
+}
+
 [[deprecated]] void huffman_table::increment(int c) {
 	counts[c]++;
 	total++;
@@ -43,6 +47,10 @@ void huffman_table::print_table() {
 
 void huffman_table::print_tree() {
 	huffman_tree->print();
+}
+
+encoding_descriptor& huffman_table::get_encoding(unsigned char prev, unsigned char c) {
+	return encoding_table[c];
 }
 
 void huffman_table::build_huffman_encoding_table(tree_node* node, encoding_descriptor& descriptor) {

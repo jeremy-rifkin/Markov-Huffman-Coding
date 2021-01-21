@@ -128,18 +128,19 @@ int main(int argc, char* argv[]) {
 		// build encoding
 		if(simple_huffman) {
 			int counts[256];
-			for(int i = 0; i < 256; i++) counts[i] = 0;
+			memset(counts, 256, sizeof(int));
 			construct_table(input_fd, [&](unsigned char prev, unsigned char c) {
 				counts[c]++;
 			});
 			coder = new huffman_table(counts);
 		} else {
 			int* counts = new int[256 * 256];
-			for(int i = 0; i < 256 * 256; i++) counts[i] = 0;
+			memset(counts, 256 * 256, sizeof(int));
 			construct_table(input_fd, [&](unsigned char prev, unsigned char c) {
 				counts[256 * prev + c]++;
 			});
 			coder = new markov_huffman_table(counts);
+			delete[] counts;
 		}
 		fseek(input_fd, 0, SEEK_SET);
 	}

@@ -13,10 +13,11 @@ struct encoding_descriptor {
 
 class i_coding_provider {
 public:
+	virtual ~i_coding_provider() = default;
 	//virtual int get_type() = 0;
 	virtual void print_table() = 0;
 	virtual void print_tree() = 0;
-	//virtual void get_encoding() = 0;
+	virtual encoding_descriptor& get_encoding(unsigned char prev, unsigned char c) = 0;
 	//virtual void decode() = 0;
 };
 
