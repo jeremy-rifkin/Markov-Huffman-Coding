@@ -17,11 +17,6 @@ huffman_table::~huffman_table() {
 	delete huffman_tree;
 }
 
-[[deprecated]] void huffman_table::increment(int c) {
-	counts[c]++;
-	total++;
-}
-
 bool huffman_table::empty() {
 	return total == 0;
 }

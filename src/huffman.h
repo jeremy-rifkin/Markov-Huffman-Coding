@@ -12,7 +12,6 @@ class huffman_table: public i_coding_provider {
 public:
 	huffman_table(int* counts);
 	~huffman_table() override;
-	[[deprecated]] void increment(int c);
 	bool empty();
 	int get_total();
 	void print_table() override;
