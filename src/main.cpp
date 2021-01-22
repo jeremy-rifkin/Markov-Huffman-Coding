@@ -71,11 +71,15 @@ void print_help() {
  * TODO: Currently have to seek back to write the last byte. Consider putting header byte at the
  * end...
  * TODO: CRC? Probably not needed for this proof of concept..
+ * TODO: Store length of decoded data as another data integrity check? Probably not for the same
+ * reason as above..
  *
  * NOTE: right bytes are filled with codewords left to right. Math might be simpler if filled
  * from right to left...
  * TODO: clean up all this math
  * TODO: get rid of all asserts
+ * TODO: This code is NOT correct at the moment. TODO TODO TODO TODO... Some bug with multi-byte
+ * codewords??
  */
 
 void compress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
@@ -160,6 +164,61 @@ void compress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 	printf("--type:-- %d\n", (~coder->get_type() & 1) << 3);
 	unsigned char header = 0x30 | (~coder->get_type() & 1) << 3 | (8 - output_bit_index) % 8;
 	assert(fwrite(&header, 1, 1, output_fd) == 1);
+}
+
+void decompress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
+	size_t bytes_read;
+	unsigned char input_buffer[BUFFER_SIZE];
+	unsigned char output_buffer[BUFFER_SIZE];
+	int output_buffer_index = 0;
+	// header
+	assert(fread(input_buffer, 1, 1, input_fd) == 1);
+	unsigned char header = input_buffer[0];
+	// TODO: proper error messages
+	assert(!(header & 1<<7));
+	assert((~(header & 1<<3)>>3 & 1) == coder->get_type());
+	int remainder = header & 7;
+	fseek(input_fd, 0, SEEK_END);
+	//int length = ftell(input_fd) * 8 - 8 + (8 - remainder); // data length in bits
+	int length = (ftell(input_fd) - 1) * 8 - remainder; // data length in bits
+	fseek(input_fd, 1, SEEK_SET);
+	// main decoder body
+	int prev = ' ';
+	const tree_node* node = null;
+	int bi = 0;
+	while(bytes_read = fread(input_buffer, 1, BUFFER_SIZE, input_fd)) {
+		for(int input_buffer_index = 0; input_buffer_index < bytes_read; input_buffer_index++) {
+			unsigned char mask = ~((unsigned char)~0>>1);
+			while(mask && bi++ < length) {
+				int bit = input_buffer[input_buffer_index] & mask ? 1 : 0;
+				if(node == null) {
+					node = coder->get_decoding_tree(prev);
+				}
+				assert(node->is_internal);
+				if(bit) {
+					node = node->right;
+				} else {
+					node = node->left;
+				}
+				assert(node != null);
+				if(!node->is_internal) {
+					output_buffer[output_buffer_index++] = node->value;
+					prev = node->value;
+					// flush buffer if necessary
+					if(output_buffer_index == BUFFER_SIZE) {
+						fwrite(output_buffer, 1, BUFFER_SIZE, output_fd);
+						output_buffer_index = 0;
+					}
+					node = null;
+				}
+				mask >>= 1;
+			}
+		}
+	}
+	// write whatever is left
+	if(output_buffer_index > 0)
+		assert(fwrite(output_buffer, 1, output_buffer_index, output_fd) == output_buffer_index);
+	assert(node == null);
 }
 
 void construct_table(FILE* input_fd, std::function<void(unsigned char, unsigned char)> counter) {
@@ -341,8 +400,7 @@ int main(int argc, char* argv[]) {
 
 	if(extract) {
 		printf("Extracting %s ===> %s...\n", input, output);
-		fprintf(stderr, "--error--\n");
-		exit(1);
+		decompress(coder, input_fd, output_fd);
 	} else {
 		printf("Compressing %s ===> %s...\n", input, output);
 		compress(coder, input_fd, output_fd);

@@ -53,6 +53,10 @@ void huffman_table::write_coding_table(FILE* output_fd) {
 	assert(fwrite(counts, sizeof(int), 256, output_fd) == 256);
 }
 
+const tree_node* huffman_table::get_decoding_tree(unsigned char) {
+	return huffman_tree;
+}
+
 void huffman_table::build_huffman_encoding_table(tree_node* node, encoding_descriptor& descriptor) {
 	if(node == null) return;
 	if(node->is_internal) {

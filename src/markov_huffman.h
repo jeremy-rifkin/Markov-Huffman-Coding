@@ -14,6 +14,7 @@ public:
 	void print_table() override;
 	void print_tree() override;
 	encoding_descriptor& get_encoding(unsigned char prev, unsigned char c) override;
+	const tree_node* get_decoding_tree(unsigned char prev) override;
 	void write_coding_table(FILE* output_fd) override;
 };
 

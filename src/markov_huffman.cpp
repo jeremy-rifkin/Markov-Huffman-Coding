@@ -51,6 +51,10 @@ encoding_descriptor& markov_huffman_table::get_encoding(unsigned char prev, unsi
 	return tables[prev].get_encoding(0, c);
 }
 
+const tree_node* markov_huffman_table::get_decoding_tree(unsigned char prev) {
+	return tables[prev].get_decoding_tree(0);
+}
+
 void markov_huffman_table::write_coding_table(FILE* output_fd) {
 	for(int i = 0; i < 256; i++) {
 		//unsigned char c = i;
