@@ -139,7 +139,7 @@ void compress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 				}
 				// flush buffer if necessary
 				if(output_buffer_index == BUFFER_SIZE) {
-					//fwrite(output_buffer, 1, BUFFER_SIZE, output_fd);
+					fwrite(output_buffer, 1, BUFFER_SIZE, output_fd);
 					output_buffer_index = 0;
 				}
 			}
