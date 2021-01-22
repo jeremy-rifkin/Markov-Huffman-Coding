@@ -307,7 +307,7 @@ int main(int argc, char* argv[]) {
 		exit(1);
 	}
 
-	FILE* input_fd = fopen(input, "r");
+	FILE* input_fd = fopen(input, "rb");
 	if(input_fd == null) {
 		printf("error opening input errno: %s\n", strerror(errno));
 		exit(1);
