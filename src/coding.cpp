@@ -15,8 +15,12 @@ void encoding_descriptor::push_bit(int b) {
 void encoding_descriptor::pop_bit() {
 	assert(length > 0);
 	length--;
-	if((length + 7) / 8 < encoding.size())
+	if((length + 7) / 8 < encoding.size()) {
 		encoding.pop_back();
+	} else {
+		// reset popped bit
+		encoding[length / 8] &= ~(1 << (8 - length % 8 - 1));
+	}
 }
 
 void encoding_descriptor::print() {
