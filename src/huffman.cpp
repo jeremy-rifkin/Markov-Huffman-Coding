@@ -1,4 +1,5 @@
 #include "huffman.h"
+#include <assert.h>
 #include <stdio.h>
 
 #include "coding.h"
@@ -46,6 +47,10 @@ void huffman_table::print_tree() {
 
 encoding_descriptor& huffman_table::get_encoding(unsigned char prev, unsigned char c) {
 	return encoding_table[c];
+}
+
+void huffman_table::write_coding_table(FILE* output_fd) {
+	assert(fwrite(counts, sizeof(int), 256, output_fd) == 256);
 }
 
 void huffman_table::build_huffman_encoding_table(tree_node* node, encoding_descriptor& descriptor) {

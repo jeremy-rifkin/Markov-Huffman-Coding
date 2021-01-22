@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
 	bool debug = false;
 	bool simple_huffman = false;
 	char* input = null;
-	char* encoding = null;
+	char* encoding_input = null;
 	char* output = null;
 	char* encoding_output = null;
 	// Process arguments
@@ -202,7 +202,7 @@ int main(int argc, char* argv[]) {
 						break;
 					case 'e':
 						if(i + 1 < argc) {
-							encoding = argv[i + chomp++ + 1];
+							encoding_input = argv[i + chomp++ + 1];
 						} else {
 							fprintf(stderr, "[Error] Expected encoding file following -e.\n");
 						}
@@ -246,6 +246,11 @@ int main(int argc, char* argv[]) {
 		exit(1);
 	}
 
+	if(encoding_input && encoding_output) {
+		printf("error don't provide an encoding input and an encoding output just use cp\n", strerror(errno));
+		exit(1);
+	}
+
 	FILE* input_fd = fopen(input, "r");
 	if(input_fd == null) {
 		printf("error opening input errno: %s\n", strerror(errno));
@@ -260,16 +265,40 @@ int main(int argc, char* argv[]) {
 		exit(1);
 	}
 
+	printf("Encoding %s ==> %s using %s\n", input, output, simple_huffman ? "simple huffman" : "markov-huffman"); // TODO: remove
+
 	// file needs to indicate whether it has the encoding embedded (todo: good idea or not??)
 	// file needs to indicate whether it is naive huffman or fancy huffman
 	i_coding_provider* coder = null;
-	if(encoding) {
+	if(encoding_input) {
+		printf("Loading encoding table from file...\n");
 		// load encoding
-		fprintf(stderr, "--error--\n");
-		exit(1);
+		FILE* encoding_input_fd = fopen(encoding_input, "rb");
+		if(encoding_input_fd == null) {
+			printf("error opening output errno: %s\n", strerror(errno));
+			exit(1);
+		}
+		fseek(encoding_input_fd, 0, SEEK_END);
+		int length = ftell(encoding_input_fd);
+		fseek(encoding_input_fd, 0, SEEK_SET);
+		//assert(length == 4 * 256 || length == 4 * 256 * (256 + 1));
+		assert(length == 4 * 256 || length == 4 * 256 * 256);
+		if(length == 4 * 256) {
+			printf("Simple Huffman encoding table found...\n");
+			int counts[256];
+			assert(fread(counts, sizeof(int), 256, encoding_input_fd) == 256);
+			coder = new huffman_table(counts);
+		} else {
+			printf("Markov-Huffman encoding table found...\n");
+			int* counts = new int[256 * 256];
+			assert(fread(counts, sizeof(int), 256 * 256, encoding_input_fd) == 256 * 256);
+			coder = new markov_huffman_table(counts);
+			delete[] counts;
+		}
 	} else {
 		// build encoding
 		if(simple_huffman) {
+			printf("Building simple Huffman encoding table from input...\n");
 			int counts[256];
 			memset(counts, 0, 256 * sizeof(int));
 			construct_table(input_fd, [&](unsigned char prev, unsigned char c) {
@@ -277,6 +306,7 @@ int main(int argc, char* argv[]) {
 			});
 			coder = new huffman_table(counts);
 		} else {
+			printf("Building Markov-Huffman encoding table from input...\n");
 			int* counts = new int[256 * 256];
 			memset(counts, 0, 256 * 256 * sizeof(int));
 			construct_table(input_fd, [&](unsigned char prev, unsigned char c) {
@@ -289,6 +319,9 @@ int main(int argc, char* argv[]) {
 		fseek(input_fd, 0, SEEK_SET);
 	}
 
+	// check that the correct encoding file was provided for our operation
+	assert(coder->get_type() ? !simple_huffman : simple_huffman);
+
 	if(debug) {
 		coder->print_table();
 		coder->print_tree();
@@ -297,19 +330,28 @@ int main(int argc, char* argv[]) {
 	// if outputing the encoding table, do so here
 	// todo: check access early with
 	if(encoding_output) {
-		fprintf(stderr, "--error--\n");
-		exit(1);
+		FILE* encoding_output_fd = fopen(encoding_output, "wb");
+		printf("Writing encoding table to %s...\n", encoding_output);
+		if(encoding_output_fd == null) {
+			printf("error opening output errno: %s\n", strerror(errno));
+			exit(1);
+		}
+		coder->write_coding_table(encoding_output_fd);
 	}
 
 	if(extract) {
+		printf("Extracting %s ===> %s...\n", input, output);
 		fprintf(stderr, "--error--\n");
 		exit(1);
 	} else {
+		printf("Compressing %s ===> %s...\n", input, output);
 		compress(coder, input_fd, output_fd);
 	}
 	fclose(input_fd);
 	fclose(output_fd);
 
 	delete coder;
+	
+	printf("Done.\n");
 }
 

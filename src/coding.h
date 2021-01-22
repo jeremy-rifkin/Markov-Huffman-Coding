@@ -1,6 +1,7 @@
 #ifndef CODING_H
 #define CODING_H
 
+#include <stdio.h>
 #include <vector>
 
 struct encoding_descriptor {
@@ -24,6 +25,7 @@ public:
 	virtual void print_tree() = 0;
 	virtual encoding_descriptor& get_encoding(unsigned char prev, unsigned char c) = 0;
 	//virtual void decode() = 0;
+	virtual void write_coding_table(FILE* output_fd) = 0;
 };
 
 #endif

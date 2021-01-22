@@ -18,6 +18,7 @@ public:
 	void print_table() override;
 	void print_tree() override;
 	encoding_descriptor& get_encoding(unsigned char prev, unsigned char c) override;
+	void write_coding_table(FILE* output_fd) override;
 private:
 	void build_huffman_encoding_table(tree_node* node, encoding_descriptor& descriptor);
 	void build();

@@ -1,4 +1,5 @@
 #include "markov_huffman.h"
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -44,4 +45,12 @@ void markov_huffman_table::print_tree() {
 
 encoding_descriptor& markov_huffman_table::get_encoding(unsigned char prev, unsigned char c) {
 	return tables[prev].get_encoding(0, c);
+}
+
+void markov_huffman_table::write_coding_table(FILE* output_fd) {
+	for(int i = 0; i < 256; i++) {
+		//unsigned char c = i;
+		//assert(fwrite(&c, 1, 1, output_fd) == 1);
+		tables[i].write_coding_table(output_fd);
+	}
 }
