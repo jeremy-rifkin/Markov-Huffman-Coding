@@ -45,10 +45,12 @@ void print_byte(unsigned char c) {
 void print_help() {
 	printf("markov-huffman <input> [-o output] [options]\n");
 	printf("\t-o output_file\n");
+	printf("\t-h use simple huffman\n");
+	printf("\n");
 	printf("\t-e encoding_file\n");
 	printf("\t-d output_encoding_file\n");
+	printf("\n");
 	printf("\t-g debug / demo encoding\n");
-	printf("\t-h just use naive huffman\n");
 	printf("\t-x extract\n");
 }
 
