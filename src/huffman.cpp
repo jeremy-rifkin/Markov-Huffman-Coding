@@ -25,6 +25,10 @@ int huffman_table::get_total() {
 	return total;
 }
 
+int huffman_table::get_type() {
+	return 0;
+}
+
 void huffman_table::print_table() {
 	printf("Table:\n");
 	for(int i = 0; i < 256; i++) {

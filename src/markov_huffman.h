@@ -10,6 +10,7 @@ class markov_huffman_table: public i_coding_provider {
 public:
 	markov_huffman_table(int* counts);
 	~markov_huffman_table() override;
+	int get_type() override;
 	void print_table() override;
 	void print_tree() override;
 	encoding_descriptor& get_encoding(unsigned char prev, unsigned char c) override;

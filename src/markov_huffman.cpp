@@ -19,18 +19,26 @@ markov_huffman_table::~markov_huffman_table() {
 	delete[] tables;
 }
 
+int markov_huffman_table::get_type() {
+	return 1;
+}
+
 void markov_huffman_table::print_table() {
 	for(int i = 0; i < 256; i++) {
-		printf("Prev '%c' table:\n", i);
-		tables[i].print_table();
+		if(!tables[i].empty()) {
+			printf("Prev '%c' table:\n", i);
+			tables[i].print_table();
+		}
 	}
 }
 
 void markov_huffman_table::print_tree() {
 	// TODO: subgraphs.
 	for(int i = 0; i < 256; i++) {
-		printf("Prev '%c' table:\n", i);
-		tables[i].print_table();
+		if(!tables[i].empty()) {
+			printf("Prev '%c' tree:\n", i);
+			tables[i].print_tree();
+		}
 	}
 }
 

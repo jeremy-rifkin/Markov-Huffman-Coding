@@ -15,7 +15,11 @@ struct encoding_descriptor {
 class i_coding_provider {
 public:
 	virtual ~i_coding_provider() = default;
-	//virtual int get_type() = 0;
+	// returns coder type
+	// 0 for simple huffman
+	// 1 for markov-huffman
+	// TODO: just read the simple_huffman flag in main?
+	virtual int get_type() = 0;
 	virtual void print_table() = 0;
 	virtual void print_tree() = 0;
 	virtual encoding_descriptor& get_encoding(unsigned char prev, unsigned char c) = 0;

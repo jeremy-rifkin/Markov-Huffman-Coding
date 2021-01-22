@@ -14,6 +14,7 @@ public:
 	~huffman_table() override;
 	bool empty();
 	int get_total();
+	int get_type() override;
 	void print_table() override;
 	void print_tree() override;
 	encoding_descriptor& get_encoding(unsigned char prev, unsigned char c) override;
