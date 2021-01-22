@@ -3,7 +3,7 @@
 
 #include "utils.h"
 
-void tree_node::print() {
+void tree_node::print() const {
 	printf("graph G {\n");
 	printf("\tnodesep=0.3;\n");
 	printf("\tranksep=0.2;\n");
@@ -15,7 +15,7 @@ void tree_node::print() {
 
 // passed the next node number
 // returns the node number left off at
-int tree_node::print_nodes(tree_node* node, int n) {
+int tree_node::print_nodes(const tree_node* node, int n) const {
 	if(node == null) return -1;
 	printf("\tn%d;\n", n);
 	if(node->is_internal) {

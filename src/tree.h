@@ -23,9 +23,9 @@ public:
 		delete left;
 		delete right;
 	}
-	void print();
+	void print() const;
 private:
-	int print_nodes(tree_node* node, int n);
+	int print_nodes(const tree_node* node, int n) const;
 };
 
 #endif
