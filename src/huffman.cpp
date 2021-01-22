@@ -72,6 +72,12 @@ void huffman_table::build_huffman_encoding_table(tree_node* node, encoding_descr
 	}
 }
 
+template<typename T> void swap(T& a, T& b) {
+	T tmp = a;
+	a = b;
+	b = tmp;
+}
+
 void huffman_table::build() {
 	if(empty()) {
 		return;
@@ -86,13 +92,19 @@ void huffman_table::build() {
 	while(q.size() > 1) {
 		tree_node* a = q.pop_min();
 		tree_node* b = q.pop_min();
+		// This is purely cosmetic and I should make a flag to turn it off.
+		if(a->height > b->height) {
+			swap(a, b);
+		}
 		q.insert(a->weight + b->weight, new tree_node { a, b });
 	}
 	huffman_tree = q.pop_min();
 	// edge case where the tree has height 0
 	if(!huffman_tree->is_internal) {
 		// TODO: weights
-		huffman_tree->left  = new tree_node { null, null, false, huffman_tree->value, huffman_tree->weight };
+		huffman_tree->left  = new tree_node { huffman_tree->value, huffman_tree->weight };
+		// height will never be touched outside of this method but just in case
+		huffman_tree->height = 1;
 		//huffman_tree->right = new tree_node { null, null, false, huffman_tree->value, 0 };
 		huffman_tree->is_internal = true;
 	}
