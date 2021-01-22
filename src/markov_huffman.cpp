@@ -17,7 +17,11 @@ markov_huffman_table::markov_huffman_table(int* counts) {
 }
 
 markov_huffman_table::~markov_huffman_table() {
-	delete[] tables;
+	// todo this is bad.
+	for(int i = 0; i < 256; i++) {
+		tables[i].~huffman_table();
+	}
+	free(tables);
 }
 
 int markov_huffman_table::get_type() {
