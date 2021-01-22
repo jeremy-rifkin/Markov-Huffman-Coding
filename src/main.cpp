@@ -306,7 +306,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	if(encoding_input && encoding_output) {
-		printf("error don't provide an encoding input and an encoding output just use cp\n", strerror(errno));
+		printf("error don't provide an encoding input and an encoding output just use cp\n");
 		exit(1);
 	}
 
