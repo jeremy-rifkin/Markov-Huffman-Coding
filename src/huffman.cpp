@@ -5,6 +5,7 @@
 #include "coding.h"
 #include "min_pq.h"
 #include "tree.h"
+#include "utils.h"
 
 huffman_table::huffman_table(int* counts): huffman_tree { null } {
 	for(int i = 0; i < 256; i++) {
@@ -34,7 +35,7 @@ void huffman_table::print_table() {
 	printf("Table:\n");
 	for(int i = 0; i < 256; i++) {
 		if(encoding_table[i].length) {
-			printf("%c %d ", i, encoding_table[i].length);
+			printf("%c %d ", charv(i), encoding_table[i].length);
 			encoding_table[i].print();
 			printf("\n");
 		}

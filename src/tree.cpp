@@ -1,7 +1,7 @@
 #include "tree.h"
 #include <stdio.h>
 
-#include "null.h"
+#include "utils.h"
 
 void tree_node::print() {
 	printf("graph G {\n");
@@ -21,7 +21,8 @@ int tree_node::print_nodes(tree_node* node, int n) {
 	if(node->is_internal) {
 		printf("\tn%d [label=\"%d\"];\n", n, node->weight);
 	} else {
-		printf("\tn%d [label=\"%c %d\"];\n", n, node->value, node->weight);
+		//printf("\tn%d [label=\"%c %d\"];\n", n, node->value, node->weight);
+		printf("\tn%d [label=\"%c\"];\n", n, charv(node->value));
 	}
 	int next = n + 1;
 	int ret = n;

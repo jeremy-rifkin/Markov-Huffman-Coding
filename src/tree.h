@@ -3,6 +3,8 @@
 
 #include "null.h"
 
+#include "utils.h"
+
 struct tree_node {
 	tree_node* left;
 	tree_node* right;

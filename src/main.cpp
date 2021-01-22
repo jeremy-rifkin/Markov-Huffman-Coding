@@ -11,7 +11,7 @@
 #include "huffman.h"
 #include "markov_huffman.h"
 #include "min_pq.h"
-#include "null.h"
+#include "utils.h"
 #include "tree.h"
 
 #define BUFFER_SIZE 32768
