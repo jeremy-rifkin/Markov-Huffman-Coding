@@ -94,48 +94,46 @@ void compress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 		for(int input_buffer_index = 0; input_buffer_index < bytes_read; input_buffer_index++) {
 			// get encoding for character in input
 			encoding_descriptor& e = coder->get_encoding(prev, input_buffer[input_buffer_index]);
-			printf("[encoding character '%c': %d ", input_buffer[input_buffer_index], e.length);
-			e.print();
-			printf("]\n");
+			///printf("[encoding character '%c': %d ", input_buffer[input_buffer_index], e.length);
+			///e.print();
+			///printf("]\n");
 			// update state
 			prev = input_buffer[input_buffer_index];
 			// write encoding
 			for(int i = 0; i < (e.length + 7) / 8; i++) {
 				// how many bits we're working with this loop
 				int working_bits = std::min(8, e.length - i * 8);
-				print_byte(byte); printf("\n");
-				for(int _ = 0; _ < output_bit_index; _++) printf(" "); printf("^\n");
+				///print_byte(byte); printf("\n");
+				///for(int _ = 0; _ < output_bit_index; _++) printf(" "); printf("^\n");
 				// three cases
 				if(output_bit_index + working_bits == 8) { // fits perfectly
 					// insert
 					byte |= e.encoding[i] >> (8 - working_bits);
-					printf("--fits perfectly--\n"); print_byte(byte); printf("\n");
+					///printf("--fits perfectly--\n"); print_byte(byte); printf("\n");
 					// flush
 					output_buffer[output_buffer_index++] = byte;
 					// reset
 					byte = 0;
 					output_bit_index = 0;
 				} else if(output_bit_index + working_bits < 8) { // falls short of fitting
-					//byte |= (e.encoding[i] >> (8 - working_bits)) << (8 - (output_bit_index + working_bits));
 					byte |= e.encoding[i] >> output_bit_index;
 					output_bit_index += working_bits;
-					printf("--under fills--\n"); print_byte(byte); printf("\n");
-					for(int _ = 0; _ < output_bit_index; _++) printf(" "); printf("^\n");
+					///printf("--under fills--\n"); print_byte(byte); printf("\n");
+					///for(int _ = 0; _ < output_bit_index; _++) printf(" "); printf("^\n");
 					continue; // skip the output_buffer_index check TODO: micro-optimization?
 				} else { // code exceeds byte size
 					// fill
-					//byte |= (e.encoding[i] >> (8 - (8 - output_bit_index)));
 					byte |= e.encoding[i] >> output_bit_index;
-					printf("--over fills--\n");
-					printf("first byte:\n");
-					print_byte(byte); printf("\n");
+					///printf("--over fills--\n");
+					///printf("first byte:\n");
+					///print_byte(byte); printf("\n");
 					// flush
 					output_buffer[output_buffer_index++] = byte;
 					// insert and reset
 					byte = e.encoding[i] << (8 - output_bit_index);
 					output_bit_index = working_bits - (8 - output_bit_index);
-					printf("--partial byte--\n"); print_byte(byte); printf("\n");
-					for(int _ = 0; _ < output_bit_index; _++) printf(" "); printf("^\n");
+					///printf("--partial byte--\n"); print_byte(byte); printf("\n");
+					///for(int _ = 0; _ < output_bit_index; _++) printf(" "); printf("^\n");
 				}
 				// flush buffer if necessary
 				if(output_buffer_index == BUFFER_SIZE) {
@@ -159,9 +157,9 @@ void compress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 	// go back and write header....
 	fseek(output_fd, 0, SEEK_SET);
 	assert(output_bit_index >= 0 && output_bit_index < 8);
-	printf("--remainder:-- %d\n", (8 - output_bit_index) % 8);
-	printf("--type:-- %d\n", coder->get_type());
-	printf("--type:-- %d\n", (~coder->get_type() & 1) << 3);
+	///printf("--remainder:-- %d\n", (8 - output_bit_index) % 8);
+	///printf("--type:-- %d\n", coder->get_type());
+	///printf("--type:-- %d\n", (~coder->get_type() & 1) << 3);
 	unsigned char header = 0x30 | (~coder->get_type() & 1) << 3 | (8 - output_bit_index) % 8;
 	assert(fwrite(&header, 1, 1, output_fd) == 1);
 }
@@ -179,7 +177,6 @@ void decompress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 	assert((~(header & 1<<3)>>3 & 1) == coder->get_type());
 	int remainder = header & 7;
 	fseek(input_fd, 0, SEEK_END);
-	//int length = ftell(input_fd) * 8 - 8 + (8 - remainder); // data length in bits
 	int length = (ftell(input_fd) - 1) * 8 - remainder; // data length in bits
 	fseek(input_fd, 1, SEEK_SET);
 	// main decoder body
