@@ -15,8 +15,8 @@ DEPENDENCIES = $(OBJS:.o=.d)
 
 CPP = g++
 CC = gcc
-#CCFLAGS = -MMD -MP -g -O3 -DMEMORY_DEBUG -Wall -Wno-sign-compare
-CCFLAGS = -MMD -MP -g -Og -DMEMORY_DEBUG -Wall -Wno-sign-compare -Wno-parentheses -Wno-misleading-indentation
+CCFLAGS = -MMD -MP -s -O3 -funroll-loops -Wall -Wno-sign-compare -Wno-parentheses
+#CCFLAGS = -MMD -MP -g -Og -DMEMORY_DEBUG -Wall -Wno-sign-compare -Wno-parentheses
 CPPFLAGS = $(CCFLAGS)
 
 MKDIR_P ?= mkdir -p
@@ -43,9 +43,6 @@ remake: clean
 	$(MAKE) $(MAKEFLAGS)
 
 test:
-	$(PY) tests/test_tape.py
-
-test_all:
-	$(PY) tests/test_all.py
+	$(PY) test/main.py
 
 -include $(DEPENDENCIES)
