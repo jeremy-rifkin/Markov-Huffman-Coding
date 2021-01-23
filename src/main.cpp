@@ -329,6 +329,10 @@ int main(int argc, char* argv[]) {
 		eprintf("Error: Don't provide an encoding input and an encoding output. Just use cp.\n");
 		exit(1);
 	}
+	if(extract && !encoding_input) {
+		eprintf("Error: Must provide encoding file input while in decompress mode.\n");
+		exit(1);
+	}
 
 	// check access on inputs/outputs
 	                    check_access(input, false);
