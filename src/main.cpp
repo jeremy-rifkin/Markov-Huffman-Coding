@@ -315,11 +315,6 @@ int main(int argc, char* argv[]) {
 		exit(1);
 	}
 
-	if(output == null) {
-		printf("error must provide output file\n");
-		exit(1);
-	}
-
 	if(encoding_input && encoding_output) {
 		printf("error don't provide an encoding input and an encoding output just use cp\n");
 		exit(1);
@@ -333,7 +328,7 @@ int main(int argc, char* argv[]) {
 
 	// open output file early to catch errors
 	// todo: just use access()?
-	FILE* output_fd = fopen(output, "wb");
+	FILE* output_fd = output == null ? stdout : fopen(output, "wb");
 	if(output_fd == null) {
 		printf("error opening output errno: %s\n", strerror(errno));
 		exit(1);
