@@ -14,4 +14,8 @@ char charv(char c);
 // file.
 void check_access(const char* path, bool write);
 
+// Shallow wrappers for fread and fwrite with builtin error handling
+int read_buffer(void* ptr, size_t size, size_t count, FILE* stream);
+int write_buffer(void* ptr, size_t size, size_t count, FILE* stream);
+
 #endif

@@ -1,5 +1,10 @@
 #include "utils.h"
 
+#include <assert.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <string.h>
+
 #ifdef _WIN32
 #include <io.h>
 #elif __linux__
@@ -7,8 +12,6 @@
 #else
 #error "Unsupported platform."
 #endif
-#include "errno.h"
-#include "string.h"
 
 char charv(char c) {
 	if(c > 32 && c < 127) {
@@ -27,6 +30,29 @@ void check_access(const char* path, bool write) {
 #endif
 	== -1)
 	eprintf("Error: Unable to open \"%s\" for %s; %s.",
+	    path,
 		write ? "writing" : "reading",
 		strerror(errno));
+}
+
+int read_buffer(void* ptr, size_t size, size_t count, FILE* stream) {
+	// make sure we don't have an error coming in
+	assert(!ferror(stream));
+	int r = fread(ptr, size, count, stream);
+	if(r != count && ferror(stream)) {
+		eprintf("Error occurred while reading file.\n");
+		exit(1);
+	}
+	return r;
+}
+
+int write_buffer(void* ptr, size_t size, size_t count, FILE* stream) {
+	// make sure we don't have an error coming in
+	assert(!ferror(stream));
+	int r = fwrite(ptr, size, count, stream);
+	if(r != count && ferror(stream)) {
+		eprintf("Error occurred while writing file.\n");
+		exit(1);
+	}
+	return r;
 }

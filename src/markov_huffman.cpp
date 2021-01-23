@@ -1,5 +1,4 @@
 #include "markov_huffman.h"
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -58,7 +57,7 @@ const tree_node* markov_huffman_table::get_decoding_tree(unsigned char prev) {
 void markov_huffman_table::write_coding_table(FILE* output_fd) {
 	for(int i = 0; i < 256; i++) {
 		//unsigned char c = i;
-		//assert(fwrite(&c, 1, 1, output_fd) == 1);
+		//write_buffer(&c, 1, 1, output_fd);
 		tables[i].write_coding_table(output_fd);
 	}
 }

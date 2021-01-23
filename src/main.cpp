@@ -92,7 +92,7 @@ void compress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 	unsigned char byte = 0x0;
 	int output_bit_index = 0;
 	int prev = ' ';
-	while(bytes_read = fread(input_buffer, 1, BUFFER_SIZE, input_fd)) {
+	while(bytes_read = read_buffer(input_buffer, 1, BUFFER_SIZE, input_fd)) {
 		for(int input_buffer_index = 0; input_buffer_index < bytes_read; input_buffer_index++) {
 			// get encoding for character in input
 			encoding_descriptor& e = coder->get_encoding(prev, input_buffer[input_buffer_index]);
@@ -151,7 +151,7 @@ void compress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 				}
 				// flush buffer if necessary
 				if(output_buffer_index == BUFFER_SIZE) {
-					fwrite(output_buffer, 1, BUFFER_SIZE, output_fd);
+					write_buffer(output_buffer, 1, BUFFER_SIZE, output_fd);
 					output_buffer_index = 0;
 				}
 			}
@@ -167,7 +167,7 @@ void compress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 		output_buffer[output_buffer_index++] = byte;
 	// write whatever is left
 	if(output_buffer_index > 0)
-		assert(fwrite(output_buffer, 1, output_buffer_index, output_fd) == output_buffer_index);
+		write_buffer(output_buffer, 1, output_buffer_index, output_fd);
 	// go back and write header....
 	fseek(output_fd, 0, SEEK_SET);
 	assert(output_bit_index >= 0 && output_bit_index < 8);
@@ -177,7 +177,7 @@ void compress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 		eprintf("--type:-- %d\n", (~coder->get_type() & 1) << 3);
 	#endif
 	unsigned char header = 0x30 | (~coder->get_type() & 1) << 3 | (8 - output_bit_index) % 8;
-	assert(fwrite(&header, 1, 1, output_fd) == 1);
+	write_buffer(&header, 1, 1, output_fd);
 }
 
 void decompress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
@@ -186,7 +186,7 @@ void decompress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 	unsigned char output_buffer[BUFFER_SIZE];
 	int output_buffer_index = 0;
 	// header
-	assert(fread(input_buffer, 1, 1, input_fd) == 1);
+	read_buffer(input_buffer, 1, 1, input_fd);
 	unsigned char header = input_buffer[0];
 	// TODO: proper error messages
 	assert(!(header & 1<<7));
@@ -199,7 +199,7 @@ void decompress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 	int prev = ' ';
 	const tree_node* node = null;
 	int bi = 0;
-	while(bytes_read = fread(input_buffer, 1, BUFFER_SIZE, input_fd)) {
+	while(bytes_read = read_buffer(input_buffer, 1, BUFFER_SIZE, input_fd)) {
 		for(int input_buffer_index = 0; input_buffer_index < bytes_read; input_buffer_index++) {
 			unsigned char mask = ~((unsigned char)~0>>1);
 			while(mask && bi++ < length) {
@@ -219,7 +219,7 @@ void decompress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 					prev = node->value;
 					// flush buffer if necessary
 					if(output_buffer_index == BUFFER_SIZE) {
-						fwrite(output_buffer, 1, BUFFER_SIZE, output_fd);
+						write_buffer(output_buffer, 1, BUFFER_SIZE, output_fd);
 						output_buffer_index = 0;
 					}
 					node = null;
@@ -232,15 +232,14 @@ void decompress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 	assert(node == null);
 	// write whatever is left
 	if(output_buffer_index > 0)
-		assert(fwrite(output_buffer, 1, output_buffer_index, output_fd) == output_buffer_index);
-	assert(node == null);
+		write_buffer(output_buffer, 1, output_buffer_index, output_fd);
 }
 
 void construct_table(FILE* input_fd, std::function<void(unsigned char, unsigned char)> counter) {
 	size_t bytes_read;
 	unsigned char buffer[BUFFER_SIZE];
 	int prev = ' ';
-	while(bytes_read = fread(buffer, 1, BUFFER_SIZE, input_fd)) {
+	while(bytes_read = read_buffer(buffer, 1, BUFFER_SIZE, input_fd)) {
 		for(int i = 0; i < bytes_read; i++) {
 			counter(prev, buffer[i]);
 			prev = buffer[i];
@@ -357,12 +356,12 @@ int main(int argc, char* argv[]) {
 		if(length == 4 * 256) {
 			eprintf("Simple Huffman encoding table found...\n");
 			int counts[256];
-			assert(fread(counts, sizeof(int), 256, encoding_input_fd) == 256);
+			read_buffer(counts, sizeof(int), 256, encoding_input_fd);
 			coder = new huffman_table(counts);
 		} else {
 			eprintf("Markov-Huffman encoding table found...\n");
 			int* counts = new int[256 * 256];
-			assert(fread(counts, sizeof(int), 256 * 256, encoding_input_fd) == 256 * 256);
+			read_buffer(counts, sizeof(int), 256 * 256, encoding_input_fd);
 			coder = new markov_huffman_table(counts);
 			delete[] counts;
 		}
