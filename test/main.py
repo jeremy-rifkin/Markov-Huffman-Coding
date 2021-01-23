@@ -64,6 +64,7 @@ def gzbz(input_file, gz):
 	return output
 
 def run_test(input_file):
+	assert(os.path.exists(input_file))
 	print("checking {}...".format(input_file))
 	e1 = encode(input_file, True)
 	e2 = encode(input_file, False)
@@ -73,11 +74,14 @@ def run_test(input_file):
 	c2 = gzbz(input_file, False)
 	correct = filecmp.cmp(input_file, o1) and filecmp.cmp(input_file, o2)
 	input_size = os.path.getsize(input_file)
+	x1 = os.path.getsize(e1) / input_size
+	x2 = os.path.getsize(e2) / input_size
 	output.add_row([
 		os.path.basename(input_file),
 		colorama.Style.BRIGHT + (colorama.Fore.GREEN + "Good" if correct else colorama.Fore.RED + "FAILED") + colorama.Style.RESET_ALL,
-		"{:.02f}".format(os.path.getsize(e1) / input_size),
-		"{:.02f}".format(os.path.getsize(e2) / input_size),
+		"{:.02f}".format(x1),
+		#"{:.02f} ({:.0f}%)".format(x2, 100 * ((x2 - x1) / x1)),
+		"{:.02f} ({:.0f}%)".format(x2, 100 * (x2 - x1)), # Yes I know, adding percentages is bad. Makes some sense here, though.
 		"{:.02f}".format(os.path.getsize(c1) / input_size),
 		"{:.02f}".format(os.path.getsize(c2) / input_size)
 	])
