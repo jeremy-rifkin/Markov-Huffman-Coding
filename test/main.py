@@ -98,8 +98,12 @@ def test_ipsum():
 	run_test("test/input/input_ipsum.txt")
 
 @Test
-def test_ipsum():
+def test_wiki_cpp():
 	run_test("test/input/input_wiki_cpp.txt")
+
+@Test
+def test_wiki_cpp_html():
+	run_test("test/input/input_wiki_cpp.html")
 
 def main():
 	if os.path.exists(working_dir):
