@@ -228,6 +228,8 @@ void decompress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 			}
 		}
 	}
+	// make sure we didn't end part-way through a codeword
+	assert(node == null);
 	// write whatever is left
 	if(output_buffer_index > 0)
 		assert(fwrite(output_buffer, 1, output_buffer_index, output_fd) == output_buffer_index);
