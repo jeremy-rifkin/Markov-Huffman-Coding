@@ -16,7 +16,7 @@
 
 #define BUFFER_SIZE 32768
 
-#define PRINTBUG true
+#define PRINTBUG false
 
 void print_counts(int* counts) {
 	for(int i = 0; i < 256; i++) {
