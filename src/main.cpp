@@ -320,6 +320,12 @@ int main(int argc, char* argv[]) {
 		exit(1);
 	}
 
+	// check access on inputs/outputs
+	                    check_access(input, false);
+	if(output)          check_access(output, true);
+	if(encoding_input)  check_access(encoding_input, false);
+	if(encoding_output) check_access(encoding_output, false);
+
 	FILE* input_fd = fopen(input, "rb");
 	if(input_fd == null) {
 		eprintf("error opening input errno: %s\n", strerror(errno));
@@ -397,7 +403,6 @@ int main(int argc, char* argv[]) {
 	}
 
 	// if outputing the encoding table, do so here
-	// todo: check access early with
 	if(encoding_output) {
 		FILE* encoding_output_fd = fopen(encoding_output, "wb");
 		eprintf("Writing encoding table to %s...\n", encoding_output);
