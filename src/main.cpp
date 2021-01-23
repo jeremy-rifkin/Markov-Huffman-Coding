@@ -18,8 +18,6 @@
 
 #define PRINTBUG false
 
-#define eprintf(...) fprintf(stderr, __VA_ARGS__)
-
 void print_counts(int* counts) {
 	for(int i = 0; i < 256; i++) {
 		if(counts[i]) {
