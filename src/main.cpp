@@ -59,6 +59,7 @@ void print_help() {
 /*
  * Output file format:
  * [metadata: 1byte] [data: .........]
+ *
  * metadata:
  *  1 bit complete | 3 bits unused | 1 bit encoder | 3 bits remainder
  *  complete: 1 if the header is currently blank, 0 if it the header is valid
@@ -69,19 +70,16 @@ void print_help() {
  *    32 16 8 4 2 1
  * The unused bits take value 0x30 so that with markov-huffman coding, the ascii value of the
  * header byte itself takes on a '0' to '9' value equal to the remainder.
+ *
+ * Using the unused bytes like this also allows them to serve as a file signature check of sorts.
+ *
  * The data length in bits can be found from the file length and partial byte.
+ *
  * TODO: Currently have to seek back to write the last byte. Consider putting header byte at the
  * end...
  * TODO: CRC? Probably not needed for this proof of concept..
  * TODO: Store length of decoded data as another data integrity check? Probably not for the same
  * reason as above..
- *
- * NOTE: right bytes are filled with codewords left to right. Math might be simpler if filled
- * from right to left...
- * TODO: clean up all this math
- * TODO: get rid of all asserts
- * TODO: This code is NOT correct at the moment. TODO TODO TODO TODO... Some bug with multi-byte
- * codewords??
  */
 
 void compress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
@@ -159,7 +157,7 @@ void compress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 	}
 	// Check for read errors
 	if(bytes_read == -1) {
-		eprintf("error occurred while reading input (errno: %d).\n", errno);
+		eprintf("Error occurred while reading input; %s.\n", strerror(errno));
 		exit(1);
 	}
 	// remainder byte
@@ -188,9 +186,14 @@ void decompress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 	// header
 	read_buffer(input_buffer, 1, 1, input_fd);
 	unsigned char header = input_buffer[0];
-	// TODO: proper error messages
-	assert(!(header & 1<<7));
-	assert((~(header & 1<<3)>>3 & 1) == coder->get_type());
+	// only necessary to check header & 1<<7, however, this checks the 0x30 serving as a file
+	// signature of sorts
+	if(header & 0xF0 != 0x30) {
+		eprintf("Error while decoding file: Input appears corrupt.\n");
+	}
+	if((~(header & 1<<3)>>3 & 1) != coder->get_type()) {
+		eprintf("Error: File encoding method does not match provided encoding table.\n");
+	}
 	int remainder = header & 7;
 	fseek(input_fd, 0, SEEK_END);
 	int length = (ftell(input_fd) - 1) * 8 - remainder; // data length in bits
@@ -207,13 +210,19 @@ void decompress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 				if(node == null) {
 					node = coder->get_decoding_tree(prev);
 				}
-				assert(node->is_internal);
+				if(!node->is_internal) {
+					eprintf("Error: Internal error while decoding input.\n");
+					exit(1);
+				}
 				if(bit) {
 					node = node->right;
 				} else {
 					node = node->left;
 				}
-				assert(node != null);
+				if(node == null) {
+					eprintf("Error: Invalid codeword found in file. File may be corrupt.\n");
+					exit(1);
+				}
 				if(!node->is_internal) {
 					output_buffer[output_buffer_index++] = node->value;
 					prev = node->value;
@@ -229,7 +238,9 @@ void decompress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 		}
 	}
 	// make sure we didn't end part-way through a codeword
-	assert(node == null);
+	if(node != null) {
+		eprintf("Error: EOF found in the middle of a codeword. File may be corrupt.\n");
+	}
 	// write whatever is left
 	if(output_buffer_index > 0)
 		write_buffer(output_buffer, 1, output_buffer_index, output_fd);
@@ -351,8 +362,10 @@ int main(int argc, char* argv[]) {
 		fseek(encoding_input_fd, 0, SEEK_END);
 		int length = ftell(encoding_input_fd);
 		fseek(encoding_input_fd, 0, SEEK_SET);
-		//assert(length == 4 * 256 || length == 4 * 256 * (256 + 1));
-		assert(length == 4 * 256 || length == 4 * 256 * 256);
+		if(!(length == 4 * 256 || length == 4 * 256 * 256)) {
+			eprintf("Error: Unknown encoding file format.\n");
+			exit(1);
+		}
 		if(length == 4 * 256) {
 			eprintf("Simple Huffman encoding table found...\n");
 			int counts[256];
@@ -391,7 +404,13 @@ int main(int argc, char* argv[]) {
 	}
 
 	// check that the correct encoding file was provided for our operation
-	assert(coder->get_type() ? !simple_huffman : simple_huffman);
+	if(coder->get_type() != !simple_huffman) {
+		assert(encoding_input);
+		eprintf("Error: Incorrect encoding table provided for current operation; "
+		        "expected %s, found %s.\n",
+		        simple_huffman ? "simple Huffman" : "Markov-Huffman",
+		        coder->get_type() ? "Markov-Huffman" : "simple Huffman");
+	}
 
 	// Print tree and table for debug view
 	if(debug) {
