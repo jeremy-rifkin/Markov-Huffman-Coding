@@ -271,21 +271,21 @@ int main(int argc, char* argv[]) {
 						if(i + 1 < argc) {
 							output = argv[i + chomp++ + 1];
 						} else {
-							eprintf("[Error] Expected output file following -o.\n");
+							eprintf("Error: Expected output file following -o.\n");
 						}
 						break;
 					case 'e':
 						if(i + 1 < argc) {
 							encoding_input = argv[i + chomp++ + 1];
 						} else {
-							eprintf("[Error] Expected encoding file following -e.\n");
+							eprintf("Error: Expected encoding file following -e.\n");
 						}
 						break;
 					case 'd':
 						if(i + 1 < argc) {
 							encoding_output = argv[i + chomp++ + 1];
 						} else {
-							eprintf("[Error] Expected encoding output file following -d.\n");
+							eprintf("Error: Expected encoding output file following -d.\n");
 						}
 						break;
 					case 'x':
@@ -298,25 +298,25 @@ int main(int argc, char* argv[]) {
 						debug = true;
 						break;
 					default:
-						eprintf("[Warning] Unknown option %c\n", argv[i][j]);
+						eprintf("Warning: Unknown option %c.\n", argv[i][j]);
 				}
 			i += chomp;
 		} else {
 			if(input == null) {
 				input = argv[i];
 			} else {
-				eprintf("[Warning] Unknown positional argument %s\n", argv[i]);
+				eprintf("Warning: Unexpected positional argument %s.\n", argv[i]);
 			}
 		}
 	}
 
 	if(input == null) {
-		eprintf("error must provide input\n");
+		eprintf("Error: Must provide input file.\n");
 		exit(1);
 	}
 
 	if(encoding_input && encoding_output) {
-		eprintf("error don't provide an encoding input and an encoding output just use cp\n");
+		eprintf("Error: Don't provide an encoding input and an encoding output. Just use cp.\n");
 		exit(1);
 	}
 
@@ -328,7 +328,7 @@ int main(int argc, char* argv[]) {
 
 	FILE* input_fd = fopen(input, "rb");
 	if(input_fd == null) {
-		eprintf("error opening input errno: %s\n", strerror(errno));
+		eprintf("Error while opening input; %s.\n", strerror(errno));
 		exit(1);
 	}
 
@@ -336,7 +336,7 @@ int main(int argc, char* argv[]) {
 	// todo: just use access()?
 	FILE* output_fd = output == null ? stdout : fopen(output, "wb");
 	if(output_fd == null) {
-		eprintf("error opening output errno: %s\n", strerror(errno));
+		eprintf("Error while opening output; %s.\n", strerror(errno));
 		exit(1);
 	}
 
@@ -350,7 +350,7 @@ int main(int argc, char* argv[]) {
 		// load encoding
 		FILE* encoding_input_fd = fopen(encoding_input, "rb");
 		if(encoding_input_fd == null) {
-			eprintf("error opening output errno: %s\n", strerror(errno));
+			eprintf("Error while opening encoding input; %s.\n", strerror(errno));
 			exit(1);
 		}
 		fseek(encoding_input_fd, 0, SEEK_END);
@@ -407,7 +407,7 @@ int main(int argc, char* argv[]) {
 		FILE* encoding_output_fd = fopen(encoding_output, "wb");
 		eprintf("Writing encoding table to %s...\n", encoding_output);
 		if(encoding_output_fd == null) {
-			eprintf("error opening output errno: %s\n", strerror(errno));
+			eprintf("Error while opening encoding file output; %s.\n", strerror(errno));
 			exit(1);
 		}
 		coder->write_coding_table(encoding_output_fd);
