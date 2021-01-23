@@ -16,28 +16,6 @@
 
 #define BUFFER_SIZE 32768
 
-#define PRINTBUG false
-
-void print_counts(int* counts) {
-	for(int i = 0; i < 256; i++) {
-		if(counts[i]) {
-			eprintf("%c %d\n", i, counts[i]);
-		}
-	}
-}
-
-void print_counts_2d(int* counts) {
-	eprintf("  ");
-	for(int i = 0; i < 256; i++) eprintf("%c", i < 0x20 || i >= 127 ? ' ' : i); eprintf("\n");
-	for(int i = 0; i < 256; i++) {
-		eprintf("%c ", i < 0x20 || i >= 127 ? ' ' : i);
-		for(int j = 0; j < 256; j++) {
-			eprintf("%d", counts[256 * i + j]);
-		}
-		eprintf("\n");
-	}
-}
-
 void print_byte(unsigned char c) {
 	for(int i = 8; i--; ) {
 		eprintf("%d", (c >> i) & 1);
@@ -94,28 +72,16 @@ void compress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 		for(int input_buffer_index = 0; input_buffer_index < bytes_read; input_buffer_index++) {
 			// get encoding for character in input
 			encoding_descriptor& e = coder->get_encoding(prev, input_buffer[input_buffer_index]);
-			#if PRINTBUG
-				eprintf("[encoding character '%c': %d ", input_buffer[input_buffer_index], e.length);
-				e.print();
-				eprintf("]\n");
-			#endif
 			// update state
 			prev = input_buffer[input_buffer_index];
 			// write encoding
 			for(int i = 0; i < (e.length + 7) / 8; i++) {
 				// how many bits we're working with this loop
 				int working_bits = std::min(8, e.length - i * 8);
-				#if PRINTBUG
-					eprintf("\t"); print_byte(byte); eprintf("\n\t");
-					for(int _ = 0; _ < output_bit_index; _++) eprintf(" "); eprintf("^\n");
-				#endif
 				// three cases
 				if(output_bit_index + working_bits == 8) { // fits perfectly
 					// insert
 					byte |= e.encoding[i] >> (8 - working_bits);
-					#if PRINTBUG
-						eprintf("\t--fits perfectly--\n\t"); print_byte(byte); eprintf("\n");
-					#endif
 					// flush
 					output_buffer[output_buffer_index++] = byte;
 					// reset
@@ -124,28 +90,15 @@ void compress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 				} else if(output_bit_index + working_bits < 8) { // falls short of fitting
 					byte |= e.encoding[i] >> output_bit_index;
 					output_bit_index += working_bits;
-					#if PRINTBUG
-						eprintf("\t--under fills--\n\t"); print_byte(byte); eprintf("\n\t");
-						for(int _ = 0; _ < output_bit_index; _++) eprintf(" "); eprintf("^\n");
-					#endif
 					continue; // skip the output_buffer_index check TODO: micro-optimization?
 				} else { // code exceeds byte size
 					// fill
 					byte |= e.encoding[i] >> output_bit_index;
-					#if PRINTBUG
-						eprintf("\t--over fills--\n");
-						eprintf("\tfirst byte:\n\t");
-						print_byte(byte); eprintf("\n");
-					#endif
 					// flush
 					output_buffer[output_buffer_index++] = byte;
 					// insert and reset
 					byte = e.encoding[i] << (8 - output_bit_index);
 					output_bit_index = working_bits - (8 - output_bit_index);
-					#if PRINTBUG
-						eprintf("\t--partial byte--\n\t"); print_byte(byte); eprintf("\n\t");
-						for(int _ = 0; _ < output_bit_index; _++) eprintf(" "); eprintf("^\n");
-					#endif
 				}
 				// flush buffer if necessary
 				if(output_buffer_index == BUFFER_SIZE) {
@@ -169,11 +122,6 @@ void compress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 	// go back and write header....
 	fseek(output_fd, 0, SEEK_SET);
 	assert(output_bit_index >= 0 && output_bit_index < 8);
-	#if PRINTBUG
-		eprintf("--remainder:-- %d\n", (8 - output_bit_index) % 8);
-		eprintf("--type:-- %d\n", coder->get_type());
-		eprintf("--type:-- %d\n", (~coder->get_type() & 1) << 3);
-	#endif
 	unsigned char header = 0x30 | (~coder->get_type() & 1) << 3 | (8 - output_bit_index) % 8;
 	write_buffer(&header, 1, 1, output_fd);
 }
@@ -399,7 +347,6 @@ int main(int argc, char* argv[]) {
 			construct_table(input_fd, [&](unsigned char prev, unsigned char c) {
 				counts[256 * prev + c]++;
 			});
-			//print_counts_2d(counts);
 			coder = new markov_huffman_table(counts);
 			delete[] counts;
 		}
