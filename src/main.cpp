@@ -258,8 +258,8 @@ int main(int argc, char* argv[]) {
 	bool debug = false;
 	bool simple_huffman = false;
 	char* input = null;
-	char* encoding_input = null;
 	char* output = null;
+	char* encoding_input = null;
 	char* encoding_output = null;
 	// Process arguments
 	for(int i = 1; i < argc; i++) {
@@ -310,11 +310,11 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
+	// argument validation
 	if(input == null) {
 		eprintf("Error: Must provide input file.\n");
 		exit(1);
 	}
-
 	if(encoding_input && encoding_output) {
 		eprintf("Error: Don't provide an encoding input and an encoding output. Just use cp.\n");
 		exit(1);
@@ -340,10 +340,6 @@ int main(int argc, char* argv[]) {
 		exit(1);
 	}
 
-	eprintf("Encoding %s ==> %s using %s\n", input, output, simple_huffman ? "simple huffman" : "markov-huffman"); // TODO: remove
-
-	// file needs to indicate whether it has the encoding embedded (todo: good idea or not??)
-	// file needs to indicate whether it is naive huffman or fancy huffman
 	i_coding_provider* coder = null;
 	if(encoding_input) {
 		eprintf("Loading encoding table from file...\n");
@@ -371,7 +367,7 @@ int main(int argc, char* argv[]) {
 			delete[] counts;
 		}
 	} else {
-		// build encoding
+		// build encoding tables
 		if(simple_huffman) {
 			eprintf("Building simple Huffman encoding table from input...\n");
 			int counts[256];
@@ -391,12 +387,14 @@ int main(int argc, char* argv[]) {
 			coder = new markov_huffman_table(counts);
 			delete[] counts;
 		}
+		// return pointer to beginning
 		fseek(input_fd, 0, SEEK_SET);
 	}
 
 	// check that the correct encoding file was provided for our operation
 	assert(coder->get_type() ? !simple_huffman : simple_huffman);
 
+	// Print tree and table for debug view
 	if(debug) {
 		coder->print_table();
 		coder->print_tree();
@@ -420,6 +418,7 @@ int main(int argc, char* argv[]) {
 		eprintf("Compressing %s ===> %s...\n", input, output);
 		compress(coder, input_fd, output_fd);
 	}
+	
 	fclose(input_fd);
 	fclose(output_fd);
 
