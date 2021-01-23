@@ -18,42 +18,44 @@
 
 #define PRINTBUG false
 
+#define eprintf(...) fprintf(stderr, __VA_ARGS__)
+
 void print_counts(int* counts) {
 	for(int i = 0; i < 256; i++) {
 		if(counts[i]) {
-			printf("%c %d\n", i, counts[i]);
+			eprintf("%c %d\n", i, counts[i]);
 		}
 	}
 }
 
 void print_counts_2d(int* counts) {
-	printf("  ");
-	for(int i = 0; i < 256; i++) printf("%c", i < 0x20 || i >= 127 ? ' ' : i); printf("\n");
+	eprintf("  ");
+	for(int i = 0; i < 256; i++) eprintf("%c", i < 0x20 || i >= 127 ? ' ' : i); eprintf("\n");
 	for(int i = 0; i < 256; i++) {
-		printf("%c ", i < 0x20 || i >= 127 ? ' ' : i);
+		eprintf("%c ", i < 0x20 || i >= 127 ? ' ' : i);
 		for(int j = 0; j < 256; j++) {
-			printf("%d", counts[256 * i + j]);
+			eprintf("%d", counts[256 * i + j]);
 		}
-		printf("\n");
+		eprintf("\n");
 	}
 }
 
 void print_byte(unsigned char c) {
 	for(int i = 8; i--; ) {
-		printf("%d", (c >> i) & 1);
+		eprintf("%d", (c >> i) & 1);
 	}
 }
 
 void print_help() {
-	printf("markov-huffman <input> [-o output] [options]\n");
-	printf("\t-o output_file\n");
-	printf("\t-h use simple huffman\n");
-	printf("\n");
-	printf("\t-e encoding_file\n");
-	printf("\t-d output_encoding_file\n");
-	printf("\n");
-	printf("\t-g debug / demo encoding\n");
-	printf("\t-x extract\n");
+	eprintf("markov-huffman <input> [-o output] [options]\n");
+	eprintf("\t-o output_file\n");
+	eprintf("\t-h use simple huffman\n");
+	eprintf("\n");
+	eprintf("\t-e encoding_file\n");
+	eprintf("\t-d output_encoding_file\n");
+	eprintf("\n");
+	eprintf("\t-g debug / demo encoding\n");
+	eprintf("\t-x extract\n");
 }
 
 /*
@@ -97,9 +99,9 @@ void compress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 			// get encoding for character in input
 			encoding_descriptor& e = coder->get_encoding(prev, input_buffer[input_buffer_index]);
 			#if PRINTBUG
-				printf("[encoding character '%c': %d ", input_buffer[input_buffer_index], e.length);
+				eprintf("[encoding character '%c': %d ", input_buffer[input_buffer_index], e.length);
 				e.print();
-				printf("]\n");
+				eprintf("]\n");
 			#endif
 			// update state
 			prev = input_buffer[input_buffer_index];
@@ -108,15 +110,15 @@ void compress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 				// how many bits we're working with this loop
 				int working_bits = std::min(8, e.length - i * 8);
 				#if PRINTBUG
-					printf("\t"); print_byte(byte); printf("\n\t");
-					for(int _ = 0; _ < output_bit_index; _++) printf(" "); printf("^\n");
+					eprintf("\t"); print_byte(byte); eprintf("\n\t");
+					for(int _ = 0; _ < output_bit_index; _++) eprintf(" "); eprintf("^\n");
 				#endif
 				// three cases
 				if(output_bit_index + working_bits == 8) { // fits perfectly
 					// insert
 					byte |= e.encoding[i] >> (8 - working_bits);
 					#if PRINTBUG
-						printf("\t--fits perfectly--\n\t"); print_byte(byte); printf("\n");
+						eprintf("\t--fits perfectly--\n\t"); print_byte(byte); eprintf("\n");
 					#endif
 					// flush
 					output_buffer[output_buffer_index++] = byte;
@@ -127,17 +129,17 @@ void compress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 					byte |= e.encoding[i] >> output_bit_index;
 					output_bit_index += working_bits;
 					#if PRINTBUG
-						printf("\t--under fills--\n\t"); print_byte(byte); printf("\n\t");
-						for(int _ = 0; _ < output_bit_index; _++) printf(" "); printf("^\n");
+						eprintf("\t--under fills--\n\t"); print_byte(byte); eprintf("\n\t");
+						for(int _ = 0; _ < output_bit_index; _++) eprintf(" "); eprintf("^\n");
 					#endif
 					continue; // skip the output_buffer_index check TODO: micro-optimization?
 				} else { // code exceeds byte size
 					// fill
 					byte |= e.encoding[i] >> output_bit_index;
 					#if PRINTBUG
-						printf("\t--over fills--\n");
-						printf("\tfirst byte:\n\t");
-						print_byte(byte); printf("\n");
+						eprintf("\t--over fills--\n");
+						eprintf("\tfirst byte:\n\t");
+						print_byte(byte); eprintf("\n");
 					#endif
 					// flush
 					output_buffer[output_buffer_index++] = byte;
@@ -145,8 +147,8 @@ void compress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 					byte = e.encoding[i] << (8 - output_bit_index);
 					output_bit_index = working_bits - (8 - output_bit_index);
 					#if PRINTBUG
-						printf("\t--partial byte--\n\t"); print_byte(byte); printf("\n\t");
-						for(int _ = 0; _ < output_bit_index; _++) printf(" "); printf("^\n");
+						eprintf("\t--partial byte--\n\t"); print_byte(byte); eprintf("\n\t");
+						for(int _ = 0; _ < output_bit_index; _++) eprintf(" "); eprintf("^\n");
 					#endif
 				}
 				// flush buffer if necessary
@@ -159,7 +161,7 @@ void compress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 	}
 	// Check for read errors
 	if(bytes_read == -1) {
-		fprintf(stderr, "error occurred while reading input (errno: %d).\n", errno);
+		eprintf("error occurred while reading input (errno: %d).\n", errno);
 		exit(1);
 	}
 	// remainder byte
@@ -172,9 +174,9 @@ void compress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 	fseek(output_fd, 0, SEEK_SET);
 	assert(output_bit_index >= 0 && output_bit_index < 8);
 	#if PRINTBUG
-		printf("--remainder:-- %d\n", (8 - output_bit_index) % 8);
-		printf("--type:-- %d\n", coder->get_type());
-		printf("--type:-- %d\n", (~coder->get_type() & 1) << 3);
+		eprintf("--remainder:-- %d\n", (8 - output_bit_index) % 8);
+		eprintf("--type:-- %d\n", coder->get_type());
+		eprintf("--type:-- %d\n", (~coder->get_type() & 1) << 3);
 	#endif
 	unsigned char header = 0x30 | (~coder->get_type() & 1) << 3 | (8 - output_bit_index) % 8;
 	assert(fwrite(&header, 1, 1, output_fd) == 1);
@@ -271,21 +273,21 @@ int main(int argc, char* argv[]) {
 						if(i + 1 < argc) {
 							output = argv[i + chomp++ + 1];
 						} else {
-							fprintf(stderr, "[Error] Expected output file following -o.\n");
+							eprintf("[Error] Expected output file following -o.\n");
 						}
 						break;
 					case 'e':
 						if(i + 1 < argc) {
 							encoding_input = argv[i + chomp++ + 1];
 						} else {
-							fprintf(stderr, "[Error] Expected encoding file following -e.\n");
+							eprintf("[Error] Expected encoding file following -e.\n");
 						}
 						break;
 					case 'd':
 						if(i + 1 < argc) {
 							encoding_output = argv[i + chomp++ + 1];
 						} else {
-							fprintf(stderr, "[Error] Expected encoding output file following -d.\n");
+							eprintf("[Error] Expected encoding output file following -d.\n");
 						}
 						break;
 					case 'x':
@@ -298,31 +300,31 @@ int main(int argc, char* argv[]) {
 						debug = true;
 						break;
 					default:
-						fprintf(stderr, "[Warning] Unknown option %c\n", argv[i][j]);
+						eprintf("[Warning] Unknown option %c\n", argv[i][j]);
 				}
 			i += chomp;
 		} else {
 			if(input == null) {
 				input = argv[i];
 			} else {
-				fprintf(stderr, "[Warning] Unknown positional argument %s\n", argv[i]);
+				eprintf("[Warning] Unknown positional argument %s\n", argv[i]);
 			}
 		}
 	}
 
 	if(input == null) {
-		printf("error must provide input\n");
+		eprintf("error must provide input\n");
 		exit(1);
 	}
 
 	if(encoding_input && encoding_output) {
-		printf("error don't provide an encoding input and an encoding output just use cp\n");
+		eprintf("error don't provide an encoding input and an encoding output just use cp\n");
 		exit(1);
 	}
 
 	FILE* input_fd = fopen(input, "rb");
 	if(input_fd == null) {
-		printf("error opening input errno: %s\n", strerror(errno));
+		eprintf("error opening input errno: %s\n", strerror(errno));
 		exit(1);
 	}
 
@@ -330,21 +332,21 @@ int main(int argc, char* argv[]) {
 	// todo: just use access()?
 	FILE* output_fd = output == null ? stdout : fopen(output, "wb");
 	if(output_fd == null) {
-		printf("error opening output errno: %s\n", strerror(errno));
+		eprintf("error opening output errno: %s\n", strerror(errno));
 		exit(1);
 	}
 
-	printf("Encoding %s ==> %s using %s\n", input, output, simple_huffman ? "simple huffman" : "markov-huffman"); // TODO: remove
+	eprintf("Encoding %s ==> %s using %s\n", input, output, simple_huffman ? "simple huffman" : "markov-huffman"); // TODO: remove
 
 	// file needs to indicate whether it has the encoding embedded (todo: good idea or not??)
 	// file needs to indicate whether it is naive huffman or fancy huffman
 	i_coding_provider* coder = null;
 	if(encoding_input) {
-		printf("Loading encoding table from file...\n");
+		eprintf("Loading encoding table from file...\n");
 		// load encoding
 		FILE* encoding_input_fd = fopen(encoding_input, "rb");
 		if(encoding_input_fd == null) {
-			printf("error opening output errno: %s\n", strerror(errno));
+			eprintf("error opening output errno: %s\n", strerror(errno));
 			exit(1);
 		}
 		fseek(encoding_input_fd, 0, SEEK_END);
@@ -353,12 +355,12 @@ int main(int argc, char* argv[]) {
 		//assert(length == 4 * 256 || length == 4 * 256 * (256 + 1));
 		assert(length == 4 * 256 || length == 4 * 256 * 256);
 		if(length == 4 * 256) {
-			printf("Simple Huffman encoding table found...\n");
+			eprintf("Simple Huffman encoding table found...\n");
 			int counts[256];
 			assert(fread(counts, sizeof(int), 256, encoding_input_fd) == 256);
 			coder = new huffman_table(counts);
 		} else {
-			printf("Markov-Huffman encoding table found...\n");
+			eprintf("Markov-Huffman encoding table found...\n");
 			int* counts = new int[256 * 256];
 			assert(fread(counts, sizeof(int), 256 * 256, encoding_input_fd) == 256 * 256);
 			coder = new markov_huffman_table(counts);
@@ -367,7 +369,7 @@ int main(int argc, char* argv[]) {
 	} else {
 		// build encoding
 		if(simple_huffman) {
-			printf("Building simple Huffman encoding table from input...\n");
+			eprintf("Building simple Huffman encoding table from input...\n");
 			int counts[256];
 			memset(counts, 0, 256 * sizeof(int));
 			construct_table(input_fd, [&](unsigned char prev, unsigned char c) {
@@ -375,7 +377,7 @@ int main(int argc, char* argv[]) {
 			});
 			coder = new huffman_table(counts);
 		} else {
-			printf("Building Markov-Huffman encoding table from input...\n");
+			eprintf("Building Markov-Huffman encoding table from input...\n");
 			int* counts = new int[256 * 256];
 			memset(counts, 0, 256 * 256 * sizeof(int));
 			construct_table(input_fd, [&](unsigned char prev, unsigned char c) {
@@ -400,19 +402,19 @@ int main(int argc, char* argv[]) {
 	// todo: check access early with
 	if(encoding_output) {
 		FILE* encoding_output_fd = fopen(encoding_output, "wb");
-		printf("Writing encoding table to %s...\n", encoding_output);
+		eprintf("Writing encoding table to %s...\n", encoding_output);
 		if(encoding_output_fd == null) {
-			printf("error opening output errno: %s\n", strerror(errno));
+			eprintf("error opening output errno: %s\n", strerror(errno));
 			exit(1);
 		}
 		coder->write_coding_table(encoding_output_fd);
 	}
 
 	if(extract) {
-		printf("Extracting %s ===> %s...\n", input, output);
+		eprintf("Extracting %s ===> %s...\n", input, output);
 		decompress(coder, input_fd, output_fd);
 	} else {
-		printf("Compressing %s ===> %s...\n", input, output);
+		eprintf("Compressing %s ===> %s...\n", input, output);
 		compress(coder, input_fd, output_fd);
 	}
 	fclose(input_fd);
@@ -420,6 +422,6 @@ int main(int argc, char* argv[]) {
 
 	delete coder;
 	
-	printf("Done.\n");
+	eprintf("Done.\n");
 }
 
