@@ -1,16 +1,28 @@
 #include "tree.h"
 #include <stdio.h>
+#include <string>
 
 #include "utils.h"
 
 void tree_node::print() const {
-	printf("graph G {\n");
+	print(false, 0, "");
+}
+
+int tree_node::print(bool subgraph, int n, const std::string& label) const {
+	if(subgraph) {
+		printf("subgraph clusterG%d {\n", n);
+		printf("\tlabel=\"%s\";\n", label.c_str());
+		printf("\tcolor=invis;\n");
+	} else {
+		printf("graph G%d {\n", n);
+	}
 	printf("\tnodesep=0.3;\n");
 	printf("\tranksep=0.2;\n");
 	printf("\tnode [shape=circle, fixedsize=true];\n");
 	printf("\tedge [arrowsize=0.8];\n");
-	print_nodes(this, 0);
+	n = print_nodes(this, n) + 1;
 	printf("}\n");
+	return n;
 }
 
 // passed the next node number
@@ -19,10 +31,12 @@ int tree_node::print_nodes(const tree_node* node, int n) const {
 	if(node == null) return -1;
 	printf("\tn%d;\n", n);
 	if(node->is_internal) {
-		printf("\tn%d [label=\"%d\"];\n", n, node->weight);
+		//printf("\tn%d [label=\"%d\"];\n", n, node->weight);
+		printf("\tn%d [label=\"\"];\n", n);
 	} else {
 		//printf("\tn%d [label=\"%c %d\"];\n", n, node->value, node->weight);
-		printf("\tn%d [label=\"%c\"];\n", n, charv(node->value));
+		//printf("\tn%d [label=\"%c\"];\n", n, charv(node->value));
+		printf("\tn%d [label=\"%s\"];\n", n, charv(node->value).c_str());
 	}
 	int next = n + 1;
 	int ret = n;

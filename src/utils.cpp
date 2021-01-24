@@ -3,6 +3,8 @@
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <sstream>
+#include <string>
 #include <string.h>
 
 #ifdef _WIN32
@@ -13,11 +15,23 @@
 #error "Unsupported platform."
 #endif
 
-char charv(char c) {
+std::string charv(unsigned char c) {
 	if(c > 32 && c < 127) {
-		return c;
+		return {(char) c, 0};
 	} else {
-		return ' ';
+		switch(c) {
+			case ' ':
+				return "\\\\space";
+			case '\t':
+				return "\\\\t";
+			case '\r':
+				return "\\\\r";
+			case '\n':
+				return "\\\\n";
+		}
+		std::stringstream stream;
+		stream<<"\\\\"<<std::hex<<(int)c;
+		return stream.str();
 	}
 }
 

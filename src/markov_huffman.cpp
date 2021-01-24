@@ -30,20 +30,23 @@ int markov_huffman_table::get_type() {
 void markov_huffman_table::print_table() {
 	for(int i = 0; i < 256; i++) {
 		if(!tables[i].empty()) {
-			printf("Prev '%c' table:\n", i);
+			printf("Prev '%s' table:\n", charv(i).c_str());
 			tables[i].print_table();
 		}
 	}
 }
 
 void markov_huffman_table::print_tree() {
-	// TODO: subgraphs.
+	printf("graph G {\n");
+	printf("\tpackmode=\"cluster\";\n");
+	int n = 0;
 	for(int i = 0; i < 256; i++) {
 		if(!tables[i].empty()) {
-			printf("Prev '%c' tree:\n", i);
-			tables[i].print_tree();
+			printf("/* Prev '%s' tree: */\n", charv(i).c_str());
+			n = tables[i].print_tree(true, n, "Prev: " + charv(i));
 		}
 	}
+	printf("}\n");
 }
 
 encoding_descriptor& markov_huffman_table::get_encoding(unsigned char prev, unsigned char c) {

@@ -2,13 +2,15 @@
 #define UTILS_H
 
 #include <stdio.h>
+#include <string>
 
 #define null 0
 
 #define eprintf(...) fprintf(stderr, __VA_ARGS__)
 
-// Returns a printable version of a character.
-char charv(char c);
+// Returns a printable representation of a character
+// Returns the character if it's printable, otherwise an escape sequence.
+std::string charv(unsigned char c);
 
 // Cross-platform wrapper to check for read/write (specified by the write parameter) access to a
 // file.

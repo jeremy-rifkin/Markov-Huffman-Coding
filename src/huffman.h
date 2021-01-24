@@ -17,6 +17,7 @@ public:
 	int get_type() override;
 	void print_table() override;
 	void print_tree() override;
+	int print_tree(bool subgraph, int n, const std::string& label);
 	encoding_descriptor& get_encoding(unsigned char prev, unsigned char c) override;
 	const tree_node* get_decoding_tree(unsigned char prev) override;
 	void write_coding_table(FILE* output_fd) override;

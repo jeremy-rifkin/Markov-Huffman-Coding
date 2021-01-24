@@ -1,5 +1,6 @@
 #include "huffman.h"
 #include <stdio.h>
+#include <string>
 
 #include "coding.h"
 #include "min_pq.h"
@@ -34,7 +35,7 @@ void huffman_table::print_table() {
 	printf("Table:\n");
 	for(int i = 0; i < 256; i++) {
 		if(encoding_table[i].length) {
-			printf("%c %d ", charv(i), encoding_table[i].length);
+			printf("%s %d ", charv(i).c_str(), encoding_table[i].length);
 			encoding_table[i].print();
 			printf("\n");
 		}
@@ -43,6 +44,10 @@ void huffman_table::print_table() {
 
 void huffman_table::print_tree() {
 	huffman_tree->print();
+}
+
+int huffman_table::print_tree(bool subgraph, int n, const std::string& label) {
+	return huffman_tree->print(subgraph, n, label);
 }
 
 encoding_descriptor& huffman_table::get_encoding(unsigned char prev, unsigned char c) {

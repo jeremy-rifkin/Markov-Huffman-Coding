@@ -2,6 +2,7 @@
 #define TREE_H
 
 #include <algorithm>
+#include <string>
 
 #include "utils.h"
 
@@ -11,7 +12,7 @@ struct tree_node {
 	bool is_internal;
 	unsigned char value;
 	int weight;
-	// height is purely used cosmetically
+	// height is used purely cosmetically
 	int height;
 public:
 	tree_node(tree_node* l, tree_node* r):
@@ -23,7 +24,10 @@ public:
 		delete left;
 		delete right;
 	}
+	// print the tree in graphvis format
 	void print() const;
+	// print the tree in graphvis format as a subgraph with n = the next node index
+	int print(bool subgraph, int n, const std::string& label) const;
 private:
 	int print_nodes(const tree_node* node, int n) const;
 };
