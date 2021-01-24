@@ -39,8 +39,7 @@ void markov_huffman_table::print_table() {
 void markov_huffman_table::print_tree() {
 	printf("graph G {\n");
 	printf("\tpackmode=\"cluster\";\n");
-	int n = 0;
-	for(int i = 0; i < 256; i++) {
+	for(int i = 0, n = 0; i < 256; i++) {
 		if(!tables[i].empty()) {
 			printf("/* Prev '%s' tree: */\n", charv(i).c_str());
 			n = tables[i].print_tree(true, n, "Prev: " + charv(i));
