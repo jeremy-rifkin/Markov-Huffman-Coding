@@ -21,7 +21,7 @@ std::string charv(unsigned char c) {
 	} else {
 		switch(c) {
 			case ' ':
-				return "\\\\space";
+				return "\\\\sp";
 			case '\t':
 				return "\\\\t";
 			case '\r':
