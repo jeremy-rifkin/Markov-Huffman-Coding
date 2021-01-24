@@ -81,8 +81,8 @@ def run_test(input_file):
 		os.path.basename(input_file),
 		colorama.Style.BRIGHT + (colorama.Fore.GREEN + "Good" if correct else colorama.Fore.RED + "FAILED") + colorama.Style.RESET_ALL,
 		"{:.02f}".format(x1),
-		#"{:.02f} ({:.0f}%)".format(x2, 100 * ((x2 - x1) / x1)),
-		"{:.02f} ({:.0f}%)".format(x2, 100 * (x2 - x1)), # Yes I know, adding percentages is bad. Makes some sense here, though.
+		"{:.02f} ({:.0f}%)".format(x2, 100 * ((x2 - x1) / x1)),
+		#"{:.02f} ({:.0f}%)".format(x2, 100 * (x2 - x1)), # Yes I know, adding percentages is bad. Makes some sense here, though.
 		"{:.02f}".format(os.path.getsize(c1) / input_size),
 		"{:.02f}".format(os.path.getsize(c2) / input_size)
 	])
