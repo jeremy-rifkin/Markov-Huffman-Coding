@@ -1,0 +1,19 @@
+name: tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: dependencies
+      run: |
+        python3 -m pip install --upgrade pip
+        python3 -m pip install colorama prettytable
+    - name: make test
+      run: make test

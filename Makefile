@@ -5,7 +5,7 @@ ifeq ($(OS),Windows_NT)
     TARGET_BINARY = bin/markovhuffman.exe
     PY = python
 else
-    TARGET_BINARY = markovhuffman
+    TARGET_BINARY = bin/markovhuffman
     PY = python3
 endif
 

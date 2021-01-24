@@ -7,6 +7,7 @@ import subprocess
 import sys
 
 working_dir = "test/.tmp"
+exe = "bin/markovhuffman.exe" if sys.platform == "win32" else "bin/markovhuffman"
 tests = []
 output = None
 failed = 0
@@ -17,7 +18,7 @@ def encode(input_file, simple):
 	base = os.path.basename(input_file)
 	output = os.path.join(working_dir, base + (".ch" if simple else ".cmh"))
 	p = subprocess.Popen([
-		"bin/markovhuffman.exe",
+		exe,
 		input_file,
 		"-o", output,
 		"-h" if simple else "-",
@@ -34,7 +35,7 @@ def decode(input_file, simple):
 	base = os.path.basename(input_file)
 	output = os.path.join(working_dir, base + (".dh" if simple else ".dmh"))
 	p = subprocess.Popen([
-		"bin/markovhuffman.exe",
+		exe,
 		os.path.join(working_dir, base + (".ch" if simple else ".cmh")),
 		"-o", output,
 		"-xh" if simple else "-x",
