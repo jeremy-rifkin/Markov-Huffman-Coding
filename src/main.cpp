@@ -25,12 +25,12 @@ void print_byte(unsigned char c) {
 void print_help() {
 	eprintf("markov-huffman <input> [-o output] [options]\n");
 	eprintf("\t-o output_file\n");
-	eprintf("\t-h use simple huffman\n");
+	eprintf("\t-h use simple huffman coding\n");
 	eprintf("\n");
 	eprintf("\t-e encoding_file\n");
 	eprintf("\t-d output_encoding_file\n");
 	eprintf("\n");
-	eprintf("\t-g debug / demo encoding\n");
+	eprintf("\t-g print huffman trees and tables\n");
 	eprintf("\t-x extract\n");
 }
 
