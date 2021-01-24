@@ -26,7 +26,7 @@ def encode(input_file, simple):
 	out, err = p.communicate()
 	if p.returncode != 0:
 		print("Error while encoding")
-		print(err)
+		print(err.decode("utf-8"))
 		sys.exit(1)
 	return output
 
@@ -43,7 +43,7 @@ def decode(input_file, simple):
 	out, err = p.communicate()
 	if p.returncode != 0:
 		print("Error while decoding")
-		print(err)
+		print(err.decode("utf-8"))
 		sys.exit(1)
 	return output
 
@@ -59,7 +59,7 @@ def gzbz(input_file, gz):
 	out, err = p.communicate()
 	if p.returncode != 0:
 		print("Error while compressing using gzip or bzip2")
-		print(err)
+		print(err.decode("utf-8"))
 		sys.exit(1)
 	return output
 
@@ -119,7 +119,7 @@ def main():
 	out, err = p.communicate()
 	if p.returncode != 0:
 		print("make failed:")
-		print(err)
+		print(err.decode("utf-8"))
 		sys.exit(1)
 
 	print("running...")
