@@ -14,7 +14,7 @@ int tree_node::print(bool subgraph, int n, const std::string& label) const {
 		printf("\tlabel=\"%s\";\n", label.c_str());
 		printf("\tcolor=invis;\n");
 	} else {
-		printf("graph G%d {\n", n);
+		printf("graph G {\n");
 	}
 	printf("\tnodesep=0.3;\n");
 	printf("\tranksep=0.2;\n");
