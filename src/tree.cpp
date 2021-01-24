@@ -34,8 +34,6 @@ int tree_node::print_nodes(const tree_node* node, int n) const {
 		//printf("\tn%d [label=\"%d\"];\n", n, node->weight);
 		printf("\tn%d [label=\"\"];\n", n);
 	} else {
-		//printf("\tn%d [label=\"%c %d\"];\n", n, node->value, node->weight);
-		//printf("\tn%d [label=\"%c\"];\n", n, charv(node->value));
 		printf("\tn%d [label=\"%s\"];\n", n, charv(node->value).c_str());
 	}
 	int next = n + 1;
