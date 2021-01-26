@@ -15,7 +15,7 @@ template<typename W, typename I> I min_pq<W, I>::pop_min() {
 }
 
 template<typename W, typename I> bool min_pq<W, I>::empty() {
-	return queue.size() != 0;
+	return queue.size() == 0;
 }
 
 template<typename W, typename I> int min_pq<W, I>::size() {
