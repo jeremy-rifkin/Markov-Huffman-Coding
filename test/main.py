@@ -125,7 +125,7 @@ def test_wiki_cpp_html():
 	run_test("test/input/input_wiki_cpp.html")
 
 @Test
-def test_wiki_cpp_html():
+def test_exe():
 	run_test(exe)
 
 def main():
