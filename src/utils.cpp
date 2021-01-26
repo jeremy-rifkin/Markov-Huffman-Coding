@@ -16,19 +16,25 @@
 #endif
 
 std::string charv(unsigned char c) {
+	switch(c) {
+		case ' ':
+			return "\\\\sp";
+		case '\t':
+			return "\\\\t";
+		case '\r':
+			return "\\\\r";
+		case '\n':
+			return "\\\\n";
+		case '"':
+			return "\\\"";
+		case '\'':
+			return "\\'";
+		case '\\':
+			return "\\\\";
+	}
 	if(c > 32 && c < 127) {
 		return {(char) c, 0};
 	} else {
-		switch(c) {
-			case ' ':
-				return "\\\\sp";
-			case '\t':
-				return "\\\\t";
-			case '\r':
-				return "\\\\r";
-			case '\n':
-				return "\\\\n";
-		}
 		std::stringstream stream;
 		stream<<"\\\\"<<std::hex<<(int)c;
 		return stream.str();
