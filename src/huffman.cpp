@@ -1,4 +1,5 @@
 #include "huffman.h"
+#include <assert.h>
 #include <stdio.h>
 #include <string>
 
@@ -7,24 +8,30 @@
 #include "tree.h"
 #include "utils.h"
 
-huffman_table::huffman_table(int* counts): huffman_tree { null } {
-	for(int i = 0; i < 256; i++) {
-		this->counts[i] = counts[i];
-		total += counts[i];
-	}
-	build();
+huffman_table::huffman_table(int* counts): huffman_tree(null) {
+	build(counts);
+}
+
+huffman_table::huffman_table(bitbuffer& buffer) {
+	huffman_tree = build_tree_from_buffer(buffer);
 }
 
 huffman_table::~huffman_table() {
 	delete huffman_tree;
 }
 
-bool huffman_table::empty() {
-	return total == 0;
+huffman_table& huffman_table::operator=(huffman_table&& other) {
+	if(this != &other) {
+		std::swap(huffman_tree, other.huffman_tree);
+		for(int i = 0; i < 256; i++) {
+			std::swap(encoding_table[i], other.encoding_table[i]);
+		}
+	}
+	return *this;
 }
 
-int huffman_table::get_total() {
-	return total;
+bool huffman_table::empty() {
+	return huffman_tree == null;
 }
 
 int huffman_table::get_type() {
@@ -54,8 +61,16 @@ encoding_descriptor& huffman_table::get_encoding(unsigned char prev, unsigned ch
 	return encoding_table[c];
 }
 
-void huffman_table::write_coding_table(FILE* output_fd) {
-	write_buffer(counts, sizeof(int), 256, output_fd);
+/*
+ * Output file format:
+ * - Traverse the tree
+ * - If an internal node is reached, output a 0
+ * - If an external node is reached, output a 1 followed by the 8 bit value
+ *
+ */
+
+void huffman_table::write_coding_tree(bitbuffer& buffer) {
+	write_coding_tree_traversal(huffman_tree, buffer);
 }
 
 const tree_node* huffman_table::get_decoding_tree(unsigned char) {
@@ -82,16 +97,17 @@ template<typename T> void swap(T& a, T& b) {
 	b = tmp;
 }
 
-void huffman_table::build() {
-	if(empty()) {
-		return;
-	}
+void huffman_table::build(int* counts) {
 	// build huffman tree from the counts
 	min_pq<int, tree_node*> q;
 	for(int i = 0; i < 256; i++) {
 		if(counts[i]) {
 			q.insert(counts[i], new tree_node { (unsigned char) i, counts[i] });
 		}
+	}
+	// if no character has counts, we're empty
+	if(q.empty()) {
+		return;
 	}
 	while(q.size() > 1) {
 		tree_node* a = q.pop_min();
@@ -105,11 +121,12 @@ void huffman_table::build() {
 	huffman_tree = q.pop_min();
 	// edge case where the tree has height 0
 	if(!huffman_tree->is_internal) {
-		// TODO: weights
+		// TODO: weights?
+		// This is a hack to make encoding/decoding and tree serializing easy
 		huffman_tree->left  = new tree_node { huffman_tree->value, huffman_tree->weight };
+		huffman_tree->right = new tree_node { huffman_tree->value, huffman_tree->weight };
 		// height will never be touched outside of this method but just in case
 		huffman_tree->height = 1;
-		//huffman_tree->right = new tree_node { null, null, false, huffman_tree->value, 0 };
 		huffman_tree->is_internal = true;
 	}
 	// recursive builder will continuously update this descriptor to build the tree
@@ -117,4 +134,28 @@ void huffman_table::build() {
 	build_huffman_encoding_table(huffman_tree, working_descriptor);
 	//huffman_tree->print();
 	//print_encoding_table();
+}
+
+tree_node* huffman_table::build_tree_from_buffer(bitbuffer& buffer) {
+	if(buffer.pop()) {
+		return new tree_node(buffer.pop_byte(), 0);
+	} else {
+		return new tree_node(build_tree_from_buffer(buffer), build_tree_from_buffer(buffer));
+	}
+}
+
+void huffman_table::write_coding_tree_traversal(tree_node* node, bitbuffer& buffer) {
+	if(node == null) {
+		return;
+	}
+	if(node->is_internal) {
+		buffer.push(0);
+	} else {
+		buffer.push(1);
+		buffer.push_byte(node->value);
+	}
+	if(node->left == null || node->right == null)
+		assert(node->left == null && node->right == null);
+	write_coding_tree_traversal(node->left, buffer);
+	write_coding_tree_traversal(node->right, buffer);
 }

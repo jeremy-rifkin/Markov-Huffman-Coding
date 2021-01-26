@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <vector>
 
+#include "bitbuffer.h"
 #include "tree.h"
 
 struct encoding_descriptor {
@@ -27,7 +28,7 @@ public:
 	virtual void print_tree() = 0;
 	virtual encoding_descriptor& get_encoding(unsigned char prev, unsigned char c) = 0;
 	virtual const tree_node* get_decoding_tree(unsigned char prev) = 0;
-	virtual void write_coding_table(FILE* output_fd) = 0;
+	virtual void write_coding_tree(bitbuffer& buffer) = 0;
 };
 
 #endif

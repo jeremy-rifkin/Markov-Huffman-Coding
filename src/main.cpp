@@ -311,25 +311,25 @@ int main(int argc, char* argv[]) {
 			eprintf("Error while opening encoding input; %s.\n", strerror(errno));
 			exit(1);
 		}
-		fseek(encoding_input_fd, 0, SEEK_END);
-		int length = ftell(encoding_input_fd);
-		fseek(encoding_input_fd, 0, SEEK_SET);
-		if(!(length == 4 * 256 || length == 4 * 256 * 256)) {
-			eprintf("Error: Unknown encoding file format.\n");
+		bitbuffer buffer(encoding_input_fd, bitbuffer::read);
+		// check that the correct encoding file was provided for our operation
+		if(buffer.peek() != !simple_huffman) {
+			assert(encoding_input);
+			eprintf("Error: Incorrect encoding table provided for current operation; "
+					"expected %s, found %s.\n",
+					simple_huffman ? "simple Huffman" : "Markov-Huffman",
+					buffer.peek() ? "Markov-Huffman" : "simple Huffman");
 			exit(1);
 		}
-		if(length == 4 * 256) {
-			eprintf("Simple Huffman encoding table found...\n");
-			int counts[256];
-			read_buffer(counts, sizeof(int), 256, encoding_input_fd);
-			coder = new huffman_table(counts);
+		if(buffer.peek() == 0) {
+			// simple huffman
+			coder = new huffman_table(buffer);
 		} else {
-			eprintf("Markov-Huffman encoding table found...\n");
-			int* counts = new int[256 * 256];
-			read_buffer(counts, sizeof(int), 256 * 256, encoding_input_fd);
-			coder = new markov_huffman_table(counts);
-			delete[] counts;
+			// markov-huffman
+			buffer.pop();
+			coder = new markov_huffman_table(buffer);
 		}
+		fclose(encoding_input_fd);
 	} else {
 		// build encoding tables
 		if(simple_huffman) {
@@ -354,15 +354,6 @@ int main(int argc, char* argv[]) {
 		fseek(input_fd, 0, SEEK_SET);
 	}
 
-	// check that the correct encoding file was provided for our operation
-	if(coder->get_type() != !simple_huffman) {
-		assert(encoding_input);
-		eprintf("Error: Incorrect encoding table provided for current operation; "
-		        "expected %s, found %s.\n",
-		        simple_huffman ? "simple Huffman" : "Markov-Huffman",
-		        coder->get_type() ? "Markov-Huffman" : "simple Huffman");
-	}
-
 	// Print tree and table for debug view
 	if(debug) {
 		coder->print_table();
@@ -377,7 +368,10 @@ int main(int argc, char* argv[]) {
 			eprintf("Error while opening encoding file output; %s.\n", strerror(errno));
 			exit(1);
 		}
-		coder->write_coding_table(encoding_output_fd);
+		bitbuffer buffer(encoding_output_fd, bitbuffer::write);
+		coder->write_coding_tree(buffer);
+		buffer.flush();
+		fclose(encoding_output_fd);
 	}
 
 	if(extract) {
@@ -389,10 +383,10 @@ int main(int argc, char* argv[]) {
 	}
 	
 	fclose(input_fd);
-	fclose(output_fd);
+	if(output_fd)
+		fclose(output_fd);
 
 	delete coder;
 	
 	eprintf("Done.\n");
 }
-
