@@ -57,7 +57,7 @@ int huffman_table::print_tree(bool subgraph, int n, const std::string& label) {
 	return huffman_tree->print(subgraph, n, label);
 }
 
-encoding_descriptor& huffman_table::get_encoding(unsigned char prev, unsigned char c) {
+encoding_descriptor& huffman_table::get_encoding(unsigned char, unsigned char c) {
 	return encoding_table[c];
 }
 

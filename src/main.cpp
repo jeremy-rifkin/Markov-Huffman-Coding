@@ -336,7 +336,7 @@ int main(int argc, char* argv[]) {
 			eprintf("Building simple Huffman encoding table from input...\n");
 			int counts[256];
 			memset(counts, 0, 256 * sizeof(int));
-			construct_table(input_fd, [&](unsigned char prev, unsigned char c) {
+			construct_table(input_fd, [&](unsigned char, unsigned char c) {
 				counts[c]++;
 			});
 			coder = new huffman_table(counts);
