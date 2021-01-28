@@ -326,7 +326,6 @@ int main(int argc, char* argv[]) {
 			coder = new huffman_table(buffer);
 		} else {
 			// markov-huffman
-			buffer.pop();
 			coder = new markov_huffman_table(buffer);
 		}
 		fclose(encoding_input_fd);
