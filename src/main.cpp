@@ -347,9 +347,10 @@ int main(int argc, char* argv[]) {
 		compress(coder, input_fd, output_fd);
 	}
 	
-	fclose(input_fd);
-	if(output_fd)
-		fclose(output_fd);
+	// TODO: tmp while refactoring
+	//fclose(input_fd);
+	//if(output_fd)
+	//	fclose(output_fd);
 
 	delete coder;
 	
