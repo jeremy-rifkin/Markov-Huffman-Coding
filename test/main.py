@@ -16,7 +16,7 @@ def Test(fn):
 
 def encode(input_file, simple):
 	base = os.path.basename(input_file)
-	output = os.path.join(working_dir, base + (".ch" if simple else ".cmh"))
+	output = os.path.join(working_dir, base + (".ch" if simple else ".cm"))
 	table = os.path.join(working_dir, base + (".eh" if simple else ".e"))
 	p = subprocess.Popen([
 		exe,
@@ -34,7 +34,7 @@ def encode(input_file, simple):
 
 def decode(input_file, encoded_file, encoding_table, simple):
 	base = os.path.basename(input_file)
-	output = os.path.join(working_dir, base + (".dh" if simple else ".dmh"))
+	output = os.path.join(working_dir, base + (".dh" if simple else ".dm"))
 	p = subprocess.Popen([
 		exe,
 		encoded_file,
