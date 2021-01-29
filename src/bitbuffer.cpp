@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <vector>
 
+#include "coding.h"
 #include "utils.h"
 
 void bitbuffer::push(int b) {
@@ -35,10 +36,39 @@ void bitbuffer::push_byte(unsigned char b) {
 	} else {
 		buffer[i++] |= b >> bi;
 		int _bi = bi;
-		bi = 0;
 		check_flush();
 		buffer[i] |= b << (8 - _bi);
 		bi = _bi;
+	}
+}
+
+void bitbuffer::push_encoding_descriptor(encoding_descriptor& descriptor) {
+	// note floor division
+	for(int j = 0; j < descriptor.length / 8; j++) {
+		push_byte(descriptor.encoding[j]);
+	}
+	// push partial byte
+	if(descriptor.length % 8) {
+		int w = descriptor.length % 8;
+		unsigned char l = descriptor.encoding[descriptor.encoding.size() - 1];
+		// 3 cases
+		if(bi + w < 8) { // falls short
+			buffer[i] |= l >> bi;
+			bi += w;
+		} else if(bi + w == 8) { // fits perfectly
+			buffer[i++] |= l >> bi;
+			bi = 0;
+			check_flush();
+		} else {
+			// fill
+			buffer[i++] |= l >> bi;
+			int _bi = bi;
+			bi = 0;
+			check_flush();
+			// insert and reset
+			buffer[i] = l << (8 - _bi);
+			bi = w - (8 - _bi);
+		}
 	}
 }
 
@@ -76,12 +106,15 @@ unsigned char bitbuffer::pop_byte() {
 		unsigned char b = 0;
 		b |= buffer[i++] << bi;
 		int _bi = bi;
-		bi = 0;
 		check_load();
 		b |= buffer[i] >> (8 - _bi);
 		bi = _bi;
 		return b;
 	}
+}
+
+int bitbuffer::get_bi() {
+	return bi;
 }
 
 void bitbuffer::check_load() {
@@ -115,13 +148,13 @@ void bitbuffer::flush() {
 	// if there is a partial byte, round up
 	if(bi) i++;
 	write_buffer(buffer, 1, i, file);
-	zero();
+	zero(i);
 	i = 0;
 	bi = 0;
 }
 
-void bitbuffer::zero() {
-	for(int i = 0; i < BUFFER_SIZE; i++) {
-		buffer[i] = 0;
+void bitbuffer::zero(int n) {
+	for(int j = 0; j < n; j++) {
+		buffer[j] = 0;
 	}
 }

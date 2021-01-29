@@ -63,10 +63,9 @@ void print_help() {
 void compress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 	size_t bytes_read;
 	unsigned char input_buffer[BUFFER_SIZE];
-	unsigned char output_buffer[BUFFER_SIZE] = { 1<<7 };
-	int output_buffer_index = 1; // skip header byte
-	unsigned char byte = 0x0;
-	int output_bit_index = 0;
+	bitbuffer output_buffer(output_fd, bitbuffer::write);
+	// push temp header byte
+	output_buffer.push_byte(1 << 7);
 	int prev = ' ';
 	while(bytes_read = read_buffer(input_buffer, 1, BUFFER_SIZE, input_fd)) {
 		for(int input_buffer_index = 0; input_buffer_index < bytes_read; input_buffer_index++) {
@@ -75,37 +74,7 @@ void compress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 			// update state
 			prev = input_buffer[input_buffer_index];
 			// write encoding
-			for(int i = 0; i < (e.length + 7) / 8; i++) {
-				// how many bits we're working with this loop
-				int working_bits = std::min(8, e.length - i * 8);
-				// three cases
-				if(output_bit_index + working_bits == 8) { // fits perfectly
-					// insert
-					byte |= e.encoding[i] >> (8 - working_bits);
-					// flush
-					output_buffer[output_buffer_index++] = byte;
-					// reset
-					byte = 0;
-					output_bit_index = 0;
-				} else if(output_bit_index + working_bits < 8) { // falls short of fitting
-					byte |= e.encoding[i] >> output_bit_index;
-					output_bit_index += working_bits;
-					continue; // skip the output_buffer_index check TODO: micro-optimization?
-				} else { // code exceeds byte size
-					// fill
-					byte |= e.encoding[i] >> output_bit_index;
-					// flush
-					output_buffer[output_buffer_index++] = byte;
-					// insert and reset
-					byte = e.encoding[i] << (8 - output_bit_index);
-					output_bit_index = working_bits - (8 - output_bit_index);
-				}
-				// flush buffer if necessary
-				if(output_buffer_index == BUFFER_SIZE) {
-					write_buffer(output_buffer, 1, BUFFER_SIZE, output_fd);
-					output_buffer_index = 0;
-				}
-			}
+			output_buffer.push_encoding_descriptor(e);
 		}
 	}
 	// Check for read errors
@@ -113,17 +82,14 @@ void compress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 		eprintf("Error occurred while reading input; %s.\n", strerror(errno));
 		exit(1);
 	}
-	// remainder byte
-	if(output_bit_index > 0)
-		output_buffer[output_buffer_index++] = byte;
-	// write whatever is left
-	if(output_buffer_index > 0)
-		write_buffer(output_buffer, 1, output_buffer_index, output_fd);
 	// go back and write header....
+	int bi = output_buffer.get_bi();
+	output_buffer.flush();
 	fseek(output_fd, 0, SEEK_SET);
-	assert(output_bit_index >= 0 && output_bit_index < 8);
-	unsigned char header = 0x30 | (~coder->get_type() & 1) << 3 | (8 - output_bit_index) % 8;
+	unsigned char header = 0x30 | (~coder->get_type() & 1) << 3 | (8 - bi) % 8;
 	write_buffer(&header, 1, 1, output_fd);
+	// output_buffer manual flush guarantees internal state i=0 so the buffer won't be flushed on
+	// destruction here
 }
 
 void decompress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {

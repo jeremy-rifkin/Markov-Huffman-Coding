@@ -6,6 +6,9 @@
 
 #define BUFFER_SIZE 32768
 
+// coding.h includes this file and we need the encoding_descriptor, so forward dec
+class encoding_descriptor;
+
 // This is an abstraction for working with bitstreams and sub-byte data storage.
 // This is a handy abstraction for use when reading/writing the encoding trees to files.
 // TODO: Maybe rework the encode/decode logic to make use of this abstraction? This was written
@@ -38,15 +41,15 @@ public:
 			flush();
 		fclose(file);
 	}
-public:
 	void push(int b); // TODO: Rename push_bit/pop_bit/peek_bit
-	// TODO: improve logic
 	void push_byte(unsigned char b);
-	// TODO: push_encoding
+	void push_encoding_descriptor(encoding_descriptor& descriptor);
 	unsigned char peek(); // TODO: Rename push_bit/pop_bit/peek_bit
 	unsigned char pop(); // TODO: Rename push_bit/pop_bit/peek_bit
-	// TODO: improve logic
 	unsigned char pop_byte();
+	int get_bi();
+	// NOTE: This flush will round up to the nearest byte
+	void flush();
 private:
 	// loads data if buffer has been consumed
 	void check_load();
@@ -54,10 +57,8 @@ private:
 	void load();
 	// flushes if the buffer is full
 	void check_flush();
-	// NOTE: This flush will round up to the nearest byte
-	void flush();
 	// zeroes buffer
-	void zero();
+	void zero(int n = BUFFER_SIZE);
 };
 
 #endif
