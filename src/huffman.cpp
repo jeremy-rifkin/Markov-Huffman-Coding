@@ -14,6 +14,7 @@ huffman_table::huffman_table(int* counts): huffman_tree(null) {
 
 huffman_table::huffman_table(bitbuffer& buffer) {
 	huffman_tree = build_tree_from_buffer(buffer);
+	build_huffman_encoding_table();
 }
 
 huffman_table::~huffman_table() {
@@ -77,6 +78,12 @@ const tree_node* huffman_table::get_decoding_tree(unsigned char) {
 	return huffman_tree;
 }
 
+void huffman_table::build_huffman_encoding_table() {
+	// recursive builder will continuously update this descriptor to build the tree
+	encoding_descriptor working_descriptor;
+	build_huffman_encoding_table(huffman_tree, working_descriptor);
+}
+
 void huffman_table::build_huffman_encoding_table(tree_node* node, encoding_descriptor& descriptor) {
 	if(node == null) return;
 	if(node->is_internal) {
@@ -129,11 +136,7 @@ void huffman_table::build(int* counts) {
 		huffman_tree->height = 1;
 		huffman_tree->is_internal = true;
 	}
-	// recursive builder will continuously update this descriptor to build the tree
-	encoding_descriptor working_descriptor;
-	build_huffman_encoding_table(huffman_tree, working_descriptor);
-	//huffman_tree->print();
-	//print_encoding_table();
+	build_huffman_encoding_table();
 }
 
 tree_node* huffman_table::build_tree_from_buffer(bitbuffer& buffer) {

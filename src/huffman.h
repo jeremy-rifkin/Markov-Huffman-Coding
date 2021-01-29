@@ -26,6 +26,7 @@ public:
 	const tree_node* get_decoding_tree(unsigned char prev) override;
 	void write_coding_tree(bitbuffer& buffer) override;
 private:
+	void build_huffman_encoding_table();
 	void build_huffman_encoding_table(tree_node* node, encoding_descriptor& descriptor);
 	void build(int* counts);
 	tree_node* build_tree_from_buffer(bitbuffer& buffer);
