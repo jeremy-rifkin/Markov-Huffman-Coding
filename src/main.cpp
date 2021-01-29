@@ -136,7 +136,7 @@ void decompress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 	unsigned char header = input_buffer[0];
 	// only necessary to check header & 1<<7, however, this checks the 0x30 serving as a file
 	// signature of sorts
-	if(header & 0xF0 != 0x30) {
+	if((header & 0xF0) != 0x30) {
 		eprintf("Error while decoding file: Input appears corrupt.\n");
 	}
 	if((~(header & 1<<3)>>3 & 1) != coder->get_type()) {
