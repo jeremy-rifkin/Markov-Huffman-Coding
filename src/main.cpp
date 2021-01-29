@@ -7,6 +7,7 @@
 #include <vector>
 #include <functional>
 
+#include "bitbuffer.h"
 #include "coding.h"
 #include "huffman.h"
 #include "markov_huffman.h"
@@ -14,6 +15,7 @@
 #include "utils.h"
 #include "tree.h"
 
+#undef BUFFER_SIZE // previously defined in bitbuffer.h
 #define BUFFER_SIZE 32768
 
 void print_byte(unsigned char c) {
@@ -93,15 +95,13 @@ void compress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 }
 
 void decompress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
-	size_t bytes_read;
-	unsigned char input_buffer[BUFFER_SIZE];
+	bitbuffer input_buffer(input_fd, bitbuffer::read);
 	unsigned char output_buffer[BUFFER_SIZE];
 	int output_buffer_index = 0;
 	// header
-	read_buffer(input_buffer, 1, 1, input_fd);
-	unsigned char header = input_buffer[0];
-	// only necessary to check header & 1<<7, however, this checks the 0x30 serving as a file
-	// signature of sorts
+	unsigned char header = input_buffer.pop_byte();
+	// only necessary to check header & 1<<7, however, checking the 0x30 serves as a file signature
+	// of sorts
 	if((header & 0xF0) != 0x30) {
 		eprintf("Error while decoding file: Input appears corrupt.\n");
 		exit(1);
@@ -111,47 +111,43 @@ void decompress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 		exit(1);
 	}
 	int remainder = header & 7;
+	long pos = ftell(input_fd);
 	fseek(input_fd, 0, SEEK_END);
 	int length = (ftell(input_fd) - 1) * 8 - remainder; // data length in bits
-	fseek(input_fd, 1, SEEK_SET);
+	fseek(input_fd, pos, SEEK_SET);
 	// main decoder body
 	int prev = ' ';
 	const tree_node* node = null;
 	int bi = 0;
-	while(bytes_read = read_buffer(input_buffer, 1, BUFFER_SIZE, input_fd)) {
-		for(int input_buffer_index = 0; input_buffer_index < bytes_read; input_buffer_index++) {
-			unsigned char mask = ~((unsigned char)~0>>1);
-			while(mask && bi++ < length) {
-				int bit = input_buffer[input_buffer_index] & mask ? 1 : 0;
-				if(node == null) {
-					node = coder->get_decoding_tree(prev);
-				}
-				if(!node->is_internal) {
-					eprintf("Error: Internal error while decoding input.\n");
-					exit(1);
-				}
-				if(bit) {
-					node = node->right;
-				} else {
-					node = node->left;
-				}
-				if(node == null) {
-					eprintf("Error: Invalid codeword found in file. File may be corrupt.\n");
-					exit(1);
-				}
-				if(!node->is_internal) {
-					output_buffer[output_buffer_index++] = node->value;
-					prev = node->value;
-					// flush buffer if necessary
-					if(output_buffer_index == BUFFER_SIZE) {
-						write_buffer(output_buffer, 1, BUFFER_SIZE, output_fd);
-						output_buffer_index = 0;
-					}
-					node = null;
-				}
-				mask >>= 1;
-			}
+	while(bi < length) {
+		int bit = input_buffer.pop();
+		if(node == null) {
+			node = coder->get_decoding_tree(prev);
 		}
+		if(!node->is_internal) {
+			eprintf("Error: Internal error while decoding input.\n");
+			exit(1);
+		}
+		if(bit) {
+			node = node->right;
+		} else {
+			node = node->left;
+		}
+		if(node == null) {
+			eprintf("Error: Invalid codeword found in file. File may be corrupt.\n");
+			exit(1);
+		}
+		if(!node->is_internal) {
+			output_buffer[output_buffer_index++] = node->value;
+			prev = node->value;
+			// flush buffer if necessary
+			if(output_buffer_index == BUFFER_SIZE) {
+				write_buffer(output_buffer, 1, BUFFER_SIZE, output_fd);
+				output_buffer_index = 0;
+			}
+			node = null;
+		}
+		bi++;
 	}
 	// make sure we didn't end part-way through a codeword
 	if(node != null) {
@@ -342,15 +338,15 @@ int main(int argc, char* argv[]) {
 	if(extract) {
 		eprintf("Extracting %s ===> %s...\n", input, output);
 		decompress(coder, input_fd, output_fd);
+		// bitbuffer in decompress takes ownership of the input_fd
+		if(output_fd != stdout)
+			fclose(output_fd);
 	} else {
 		eprintf("Compressing %s ===> %s...\n", input, output);
 		compress(coder, input_fd, output_fd);
+		// bitbuffer in compress takes ownership of the output_fd
+		fclose(input_fd);
 	}
-	
-	// TODO: tmp while refactoring
-	//fclose(input_fd);
-	//if(output_fd)
-	//	fclose(output_fd);
 
 	delete coder;
 	

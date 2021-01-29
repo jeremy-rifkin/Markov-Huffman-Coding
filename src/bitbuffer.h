@@ -35,11 +35,12 @@ public:
 	bitbuffer(FILE* file, e_mode mode): i(0), bi(0), bytes_read(0), file(file), mode(mode) {
 		if(mode == write)
 			zero();
-	};
+	}
 	~bitbuffer() {
 		if(mode == write)
 			flush();
-		fclose(file);
+		if(file != stdout)
+			fclose(file);
 	}
 	void push(int b); // TODO: Rename push_bit/pop_bit/peek_bit
 	void push_byte(unsigned char b);
