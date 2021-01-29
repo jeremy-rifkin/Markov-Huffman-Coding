@@ -138,9 +138,11 @@ void decompress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 	// signature of sorts
 	if((header & 0xF0) != 0x30) {
 		eprintf("Error while decoding file: Input appears corrupt.\n");
+		exit(1);
 	}
 	if((~(header & 1<<3)>>3 & 1) != coder->get_type()) {
 		eprintf("Error: File encoding method does not match provided encoding table.\n");
+		exit(1);
 	}
 	int remainder = header & 7;
 	fseek(input_fd, 0, SEEK_END);
@@ -188,6 +190,7 @@ void decompress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 	// make sure we didn't end part-way through a codeword
 	if(node != null) {
 		eprintf("Error: EOF found in the middle of a codeword. File may be corrupt.\n");
+		// intentionally not exiting here
 	}
 	// write whatever is left
 	if(output_buffer_index > 0)
