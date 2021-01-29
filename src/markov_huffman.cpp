@@ -15,13 +15,11 @@ markov_huffman_table::markov_huffman_table(bitbuffer& buffer): markov_huffman_ta
 	// pop leading indicator bit
 	buffer.pop();
 	// load trees
-	unsigned char i = 0; // current prev symbol
-	while(buffer.remaining() >= 8) {
+	for(int i = 0; i < 256; i++) {
 		if(buffer.pop()) {
 			tables[i] = huffman_table(buffer);
 		}
 		// else: no action required
-		i++;
 	}
 }
 
@@ -75,11 +73,10 @@ const tree_node* markov_huffman_table::get_decoding_tree(unsigned char prev) {
  * bytes for the symbols.
  * Storing all 256 trees regardless with a 1-bit header for each indicating full/empty status
  * results in a constant 32 byte overhead, which is better in most cases.
+ * Storing 1-bit headers for each prev value also makes it much easier to get away with not storing
+ * the partial byte count without having to use a janky system for determining when to stop reading.
  *
  * TODO: There's an edge case where every tree is empty. Currently empty files are not handled...
- *
- * Don't need to store the partial byte in the huffman tree dump because the minimum huffman
- * tree size > 8 bytes. We can just stop at the first partial byte.
  *
  */
 
