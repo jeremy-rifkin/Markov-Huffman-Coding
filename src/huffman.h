@@ -8,8 +8,9 @@
 class huffman_table: public i_coding_provider {
 	tree_node* huffman_tree;
 	encoding_descriptor encoding_table[256];
+	tree_node* decoding_lookup_table[256];
 public:
-	huffman_table(): huffman_tree(null) {};
+	huffman_table();
 	huffman_table(int* counts);
 	huffman_table(bitbuffer& buffer);
 	~huffman_table() override;
@@ -24,10 +25,11 @@ public:
 	int print_tree(bool subgraph, int n, const std::string& label);
 	encoding_descriptor& get_encoding(unsigned char prev, unsigned char c) override;
 	const tree_node* get_decoding_tree(unsigned char prev) override;
+	const tree_node* decoding_lookup(unsigned char prev, unsigned char c) override;
 	void write_coding_tree(bitbuffer& buffer) override;
 private:
 	void build_huffman_encoding_table();
-	void build_huffman_encoding_table(tree_node* node, encoding_descriptor& descriptor);
+	void build_huffman_encoding_table(tree_node* node, encoding_descriptor& descriptor, int height);
 	void build(int* counts);
 	tree_node* build_tree_from_buffer(bitbuffer& buffer);
 	void write_coding_tree_traversal(tree_node* node, bitbuffer& buffer);

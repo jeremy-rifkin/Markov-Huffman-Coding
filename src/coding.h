@@ -27,7 +27,8 @@ public:
 	virtual void print_table() = 0;
 	virtual void print_tree() = 0;
 	virtual encoding_descriptor& get_encoding(unsigned char prev, unsigned char c) = 0;
-	virtual const tree_node* get_decoding_tree(unsigned char prev) = 0;
+	[[deprecated]] virtual const tree_node* get_decoding_tree(unsigned char prev) = 0;
+	virtual const tree_node* decoding_lookup(unsigned char prev, unsigned char c) = 0;
 	virtual void write_coding_tree(bitbuffer& buffer) = 0;
 };
 

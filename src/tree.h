@@ -12,7 +12,7 @@ struct tree_node {
 	bool is_internal;
 	unsigned char value;
 	int weight;
-	// height is used purely cosmetically
+	// height is used cosmetically but also indicates the codeword length
 	int height;
 public:
 	tree_node(tree_node* l, tree_node* r):

@@ -8,11 +8,17 @@
 #include "tree.h"
 #include "utils.h"
 
-huffman_table::huffman_table(int* counts): huffman_tree(null) {
+huffman_table::huffman_table(): huffman_tree(null) {
+	for(int i = 0; i < 256; i++) {
+		decoding_lookup_table[i] = 0;
+	}
+}
+
+huffman_table::huffman_table(int* counts): huffman_table() {
 	build(counts);
 }
 
-huffman_table::huffman_table(bitbuffer& buffer) {
+huffman_table::huffman_table(bitbuffer& buffer): huffman_table() {
 	huffman_tree = build_tree_from_buffer(buffer);
 	build_huffman_encoding_table();
 }
@@ -78,23 +84,40 @@ const tree_node* huffman_table::get_decoding_tree(unsigned char) {
 	return huffman_tree;
 }
 
-void huffman_table::build_huffman_encoding_table() {
-	// recursive builder will continuously update this descriptor to build the tree
-	encoding_descriptor working_descriptor;
-	build_huffman_encoding_table(huffman_tree, working_descriptor);
+const tree_node* huffman_table::decoding_lookup(unsigned char, unsigned char c) {
+	return decoding_lookup_table[c];
 }
 
-void huffman_table::build_huffman_encoding_table(tree_node* node, encoding_descriptor& descriptor) {
+void huffman_table::build_huffman_encoding_table() {
+	// Recursive builder will continuously update this descriptor while traversing the tree
+	encoding_descriptor working_descriptor;
+	build_huffman_encoding_table(huffman_tree, working_descriptor, 0);
+}
+
+void huffman_table::build_huffman_encoding_table(tree_node* node, encoding_descriptor& descriptor, int height) {
+	// This function does two things:
+	// - Populates the encoding table.
+	// - Builds the decoding lookup table.
+	// Note: height should always be equal to the descriptor length
 	if(node == null) return;
 	if(node->is_internal) {
 		descriptor.push_bit(0);
-		build_huffman_encoding_table(node->left, descriptor);
+		build_huffman_encoding_table(node->left, descriptor, height + 1);
 		descriptor.pop_bit();
 		descriptor.push_bit(1);
-		build_huffman_encoding_table(node->right, descriptor);
+		build_huffman_encoding_table(node->right, descriptor, height + 1);
 		descriptor.pop_bit();
+		if(height == 8) {
+			decoding_lookup_table[descriptor.encoding[0]] = node;
+		}
 	} else {
 		encoding_table[node->value] = descriptor;
+		if(height <= 8) {
+			unsigned char codeword = descriptor.encoding[0];
+			for(int i = 0; i < 1 << 8 - height; i++) {
+				decoding_lookup_table[codeword + i] = node;
+			}
+		}
 	}
 }
 
