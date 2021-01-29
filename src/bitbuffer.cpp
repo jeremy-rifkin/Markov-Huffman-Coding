@@ -36,6 +36,7 @@ void bitbuffer::push_byte(unsigned char b) {
 	} else {
 		buffer[i++] |= b >> bi;
 		int _bi = bi;
+		bi = 0;
 		check_flush();
 		buffer[i] |= b << (8 - _bi);
 		bi = _bi;
