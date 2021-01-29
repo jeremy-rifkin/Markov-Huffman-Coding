@@ -18,14 +18,27 @@ void bitbuffer::push(int b) {
 	}
 }
 
-// "surely the compiler will optimize this"
-// TODO: I should probably implement this better...
 void bitbuffer::push_byte(unsigned char b) {
 	assert(mode == write);
-	unsigned char mask = ~((unsigned char)~0>>1);
-	while(mask) {
-		push(b & mask ? 1 : 0);
-		mask >>= 1;
+	// Previously used a loop:
+	//unsigned char mask = ~((unsigned char)~0>>1);
+	//while(mask) {
+	//	push(b & mask ? 1 : 0);
+	//	mask >>= 1;
+	//}
+	// Now using bitwise logic
+	// Is this micro-optimization? The compiler does optimize this loop a lot but I don't think it's
+	// micro-optimization.
+	if(bi == 0) {
+		buffer[i++] = b;
+		check_flush();
+	} else {
+		buffer[i++] |= b >> bi;
+		int _bi = bi;
+		bi = 0;
+		check_flush();
+		buffer[i] |= b << (8 - _bi);
+		bi = _bi;
 	}
 }
 
@@ -46,18 +59,29 @@ unsigned char bitbuffer::pop() {
 	return b;
 }
 
-// "surely the compiler will optimize this"
-// TODO: I should probably implement this better...
 unsigned char bitbuffer::pop_byte() {
 	assert(mode == read);
-	unsigned char b = 0;
-	unsigned char mask = ~((unsigned char)~0>>1);
-	while(mask) {
-		if(pop())
-			b |= mask;
-		mask >>= 1;
+	//unsigned char b = 0;
+	//unsigned char mask = ~((unsigned char)~0>>1);
+	//while(mask) {
+	//	if(pop())
+	//		b |= mask;
+	//	mask >>= 1;
+	//}
+	//return b;
+	check_load();
+	if(bi == 0) {
+		return buffer[i++];
+	} else {
+		unsigned char b = 0;
+		b |= buffer[i++] << bi;
+		int _bi = bi;
+		bi = 0;
+		check_load();
+		b |= buffer[i] >> (8 - _bi);
+		bi = _bi;
+		return b;
 	}
-	return b;
 }
 
 void bitbuffer::check_load() {
