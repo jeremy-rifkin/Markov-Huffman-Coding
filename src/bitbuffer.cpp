@@ -6,16 +6,16 @@
 
 #include "utils.h"
 
-#define BUFFER_SIZE 32768
-
 void bitbuffer::push(int b) {
+	assert(b == b & 1);
 	assert(mode == write);
-	if(bi % 8 == 0) {
-		data.push_back((unsigned char)(b << 7));
-	} else {
-		data[bi / 8] |= b << (8 - bi % 8 - 1);
-	}
+	buffer[i] |= b << (7 - bi);
 	bi++;
+	if(bi == 8) {
+		i++;
+		bi = 0;
+		check_flush();
+	}
 }
 
 // "surely the compiler will optimize this"
@@ -31,21 +31,25 @@ void bitbuffer::push_byte(unsigned char b) {
 
 unsigned char bitbuffer::peek() {
 	assert(mode == read);
-	assert(bi < 8 * data.size());
-	return (data[bi / 8] >> (7 - (bi % 8))) & 1;
+	check_load();
+	assert(i < bytes_read);
+	return (buffer[i] >> (7 - bi)) & 1;
 }
 
 unsigned char bitbuffer::pop() {
-	unsigned char b;
-	return b = peek(), bi++, b;
+	assert(mode == read);
+	unsigned char b = peek();
+	if(++bi == 8) {
+		i++;
+		bi = 0;
+	}
+	return b;
 }
 
 // "surely the compiler will optimize this"
 // TODO: I should probably implement this better...
 unsigned char bitbuffer::pop_byte() {
 	assert(mode == read);
-	// TODO: double-check boundary here or just rely on ::pop()'s boundary check?
-	assert(bi < 8 * data.size() - 7);
 	unsigned char b = 0;
 	unsigned char mask = ~((unsigned char)~0>>1);
 	while(mask) {
@@ -56,27 +60,44 @@ unsigned char bitbuffer::pop_byte() {
 	return b;
 }
 
-int bitbuffer::remaining() {
+void bitbuffer::check_load() {
 	assert(mode == read);
-	return 8 * data.size() - bi;
-}
-
-void bitbuffer::flush() {
-	assert(mode == write);
-	write_buffer(&data[0], 1, data.size(), file);
-	data.clear();
-	bi = 0;
+	assert(i <= bytes_read);
+	if(i == bytes_read) {
+		load();
+	}
 }
 
 void bitbuffer::load() {
 	assert(mode == read);
-	size_t bytes_read;
-	unsigned char input_buffer[BUFFER_SIZE];
-	while(bytes_read = read_buffer(input_buffer, 1, BUFFER_SIZE, file)) {
-		int size_0 = data.size();
-		data.reserve(size_0 + bytes_read);
-		for(int i = 0; i < bytes_read; i++) {
-			data.push_back(input_buffer[i]);
-		}
+	assert(!feof(file));
+	bytes_read = read_buffer(buffer, 1, BUFFER_SIZE, file);
+	i = 0;
+	bi = 0;
+}
+
+void bitbuffer::check_flush() {
+	assert(mode == write);
+	assert(i <= BUFFER_SIZE);
+	if(i == BUFFER_SIZE) {
+		flush();
+	}
+}
+
+void bitbuffer::flush() {
+	assert(mode == write);
+	// if the buffer is being flushed because it's full, there shouldn't be a partial byte
+	assert(i != BUFFER_SIZE || bi == 0);
+	// if there is a partial byte, round up
+	if(bi) i++;
+	write_buffer(buffer, 1, i, file);
+	zero();
+	i = 0;
+	bi = 0;
+}
+
+void bitbuffer::zero() {
+	for(int i = 0; i < BUFFER_SIZE; i++) {
+		buffer[i] = 0;
 	}
 }

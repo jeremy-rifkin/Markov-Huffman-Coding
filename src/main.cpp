@@ -331,7 +331,6 @@ int main(int argc, char* argv[]) {
 			// markov-huffman
 			coder = new markov_huffman_table(buffer);
 		}
-		fclose(encoding_input_fd);
 	} else {
 		// build encoding tables
 		if(simple_huffman) {
@@ -372,8 +371,6 @@ int main(int argc, char* argv[]) {
 		}
 		bitbuffer buffer(encoding_output_fd, bitbuffer::write);
 		coder->write_coding_tree(buffer);
-		buffer.flush();
-		fclose(encoding_output_fd);
 	}
 
 	if(extract) {
