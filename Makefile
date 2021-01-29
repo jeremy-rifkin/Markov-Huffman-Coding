@@ -15,8 +15,9 @@ DEPENDENCIES = $(OBJS:.o=.d)
 
 CPP = g++
 CC = gcc
-CCFLAGS = -MMD -MP -s -O3 -funroll-loops -Wall -Wextra -Wpedantic -Wno-sign-compare -Wno-parentheses
-#CCFLAGS = -MMD -MP -g -Wall -Wextra -Wpedantic -Wno-sign-compare -Wno-parentheses
+WFLAGS = -Wextra -Wpedantic -Wno-sign-compare -Wno-parentheses
+CCFLAGS = -MMD -MP -s -O3 -funroll-loops -DNDEBUG $(WFLAGS)
+#CCFLAGS = -MMD -MP -g $(WFLAGS)
 CPPFLAGS = $(CCFLAGS)
 
 MKDIR_P ?= mkdir -p
