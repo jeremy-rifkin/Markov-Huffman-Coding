@@ -83,10 +83,6 @@ void huffman_table::write_coding_tree(bitbuffer& buffer) {
 	write_coding_tree_traversal(huffman_tree, buffer);
 }
 
-const tree_node* huffman_table::get_decoding_tree(unsigned char) {
-	return huffman_tree;
-}
-
 const tree_node* huffman_table::decoding_lookup(unsigned char, unsigned char c) {
 	return decoding_lookup_table[c];
 }

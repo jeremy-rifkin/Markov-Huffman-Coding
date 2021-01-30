@@ -52,10 +52,6 @@ encoding_descriptor& markov_huffman_table::get_encoding(unsigned char prev, unsi
 	return tables[prev].get_encoding(prev, c);
 }
 
-const tree_node* markov_huffman_table::get_decoding_tree(unsigned char prev) {
-	return tables[prev].get_decoding_tree(0);
-}
-
 const tree_node* markov_huffman_table::decoding_lookup(unsigned char prev, unsigned char c) {
 	return tables[prev].decoding_lookup(prev, c);
 }

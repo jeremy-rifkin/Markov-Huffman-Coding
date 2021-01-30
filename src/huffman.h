@@ -24,7 +24,6 @@ public:
 	void print_tree() override;
 	int print_tree(bool subgraph, int n, const std::string& label);
 	encoding_descriptor& get_encoding(unsigned char prev, unsigned char c) override;
-	const tree_node* get_decoding_tree(unsigned char prev) override;
 	const tree_node* decoding_lookup(unsigned char prev, unsigned char c) override;
 	void write_coding_tree(bitbuffer& buffer) override;
 private:
