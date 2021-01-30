@@ -93,6 +93,8 @@ void compress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 	write_buffer(&header, 1, 1, output_fd);
 	// output_buffer manual flush guarantees internal state i=0 so the buffer won't be flushed on
 	// destruction here
+	// output_fd will be handled by the output bitbuffer
+	fclose(input_fd);
 }
 
 void decompress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
@@ -158,6 +160,7 @@ void decompress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 		}
 	}
 	assert(bi == length);
+	// bitbuffers will close the file descriptors
 }
 
 void construct_table(FILE* input_fd, std::function<void(unsigned char, unsigned char)> counter) {
@@ -338,13 +341,12 @@ int main(int argc, char* argv[]) {
 
 	if(extract) {
 		eprintf("Extracting %s ===> %s...\n", input, output);
+		// file descriptor ownership transferred into this method
 		decompress(coder, input_fd, output_fd);
-		// bitbuffers in decompress take ownership of input_fd and output_fd
 	} else {
 		eprintf("Compressing %s ===> %s...\n", input, output);
+		// file descriptor ownership transferred into this method
 		compress(coder, input_fd, output_fd);
-		// bitbuffer in compress takes ownership of the output_fd
-		fclose(input_fd);
 	}
 
 	delete coder;
