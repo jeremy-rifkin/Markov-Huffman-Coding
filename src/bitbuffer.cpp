@@ -7,7 +7,7 @@
 #include "coding.h"
 #include "utils.h"
 
-void bitbuffer::push(int b) {
+void bitbuffer::push_bit(int b) {
 	assert(b == b & 1);
 	assert(mode == write);
 	buffer[i] |= b << (7 - bi);
@@ -73,16 +73,16 @@ void bitbuffer::push_encoding_descriptor(encoding_descriptor& descriptor) {
 	}
 }
 
-unsigned char bitbuffer::peek() {
+unsigned char bitbuffer::peek_bit() {
 	assert(mode == read);
 	check_load();
 	assert(i < bytes_read);
 	return (buffer[i] >> (7 - bi)) & 1;
 }
 
-unsigned char bitbuffer::pop() {
+unsigned char bitbuffer::pop_bit() {
 	assert(mode == read);
-	unsigned char b = peek();
+	unsigned char b = peek_bit();
 	if(++bi == 8) {
 		i++;
 		bi = 0;
@@ -114,14 +114,14 @@ unsigned char bitbuffer::pop_byte() {
 	}
 }
 
-unsigned char bitbuffer::try_pop() {
+unsigned char bitbuffer::try_pop_bit() {
 	assert(mode == read);
 	if(!feof(file))
 		check_load();
 	if(bytes_read == 0)
 		assert(feof(file));
 	if(i < bytes_read) {
-		return pop();
+		return pop_bit();
 	} else {
 		return 0;
 	}
@@ -133,7 +133,7 @@ unsigned char bitbuffer::pop_rest(unsigned char byte, int byte_i) {
 	assert(byte_i < 8 && byte_i >= 0);
 	unsigned char mask = 1 << (7 - byte_i);
 	while(mask) {
-		if(try_pop())
+		if(try_pop_bit())
 			byte |= mask;
 		mask >>= 1;
 	}

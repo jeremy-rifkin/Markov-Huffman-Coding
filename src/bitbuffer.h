@@ -39,11 +39,11 @@ public:
 		if(file != stdout)
 			fclose(file);
 	}
-	void push(int b); // TODO: Rename push_bit/pop_bit/peek_bit
+	void push_bit(int b);
 	void push_byte(unsigned char b);
 	void push_encoding_descriptor(encoding_descriptor& descriptor);
-	unsigned char peek(); // TODO: Rename push_bit/pop_bit/peek_bit
-	unsigned char pop(); // TODO: Rename push_bit/pop_bit/peek_bit
+	unsigned char peek_bit();
+	unsigned char pop_bit();
 	unsigned char pop_byte();
 	// pops enough bits to fill the rest of a byte
 	// if eof is reached, the byte is padded with zeroes
@@ -53,7 +53,7 @@ public:
 	void flush();
 private:
 	// pops a bit or returns 0 if eof is reached
-	unsigned char try_pop();
+	unsigned char try_pop_bit();
 	// loads data if buffer has been consumed
 	void check_load();
 	// loads data from file into the buffer

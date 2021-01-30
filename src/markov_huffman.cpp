@@ -13,10 +13,10 @@ markov_huffman_table::markov_huffman_table(int* counts): markov_huffman_table() 
 
 markov_huffman_table::markov_huffman_table(bitbuffer& buffer): markov_huffman_table() {
 	// pop leading indicator bit
-	buffer.pop();
+	buffer.pop_bit();
 	// load trees
 	for(int i = 0; i < 256; i++) {
-		if(buffer.pop()) {
+		if(buffer.pop_bit()) {
 			tables[i] = huffman_table(buffer);
 		}
 		// else: no action required
@@ -85,9 +85,9 @@ const tree_node* markov_huffman_table::decoding_lookup(unsigned char prev, unsig
  */
 
 void markov_huffman_table::write_coding_tree(bitbuffer& buffer) {
-	buffer.push(1);
+	buffer.push_bit(1);
 	for(int i = 0; i < 256; i++) {
-		buffer.push(!tables[i].empty());
+		buffer.push_bit(!tables[i].empty());
 		if(!tables[i].empty()) {
 			tables[i].write_coding_tree(buffer);
 		}

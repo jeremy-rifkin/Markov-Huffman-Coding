@@ -165,7 +165,7 @@ void huffman_table::build(int* counts) {
 }
 
 tree_node* huffman_table::build_tree_from_buffer(bitbuffer& buffer) {
-	if(buffer.pop()) {
+	if(buffer.pop_bit()) {
 		return new tree_node(buffer.pop_byte(), 0);
 	} else {
 		return new tree_node(build_tree_from_buffer(buffer), build_tree_from_buffer(buffer));
@@ -177,9 +177,9 @@ void huffman_table::write_coding_tree_traversal(tree_node* node, bitbuffer& buff
 		return;
 	}
 	if(node->is_internal) {
-		buffer.push(0);
+		buffer.push_bit(0);
 	} else {
-		buffer.push(1);
+		buffer.push_bit(1);
 		buffer.push_byte(node->value);
 	}
 	if(node->left == null || node->right == null)

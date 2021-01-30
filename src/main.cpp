@@ -132,7 +132,7 @@ void decompress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 			bi += 8;
 			// need to traverse
 			while(node != null) {
-				int bit = input_buffer.pop();
+				int bit = input_buffer.pop_bit();
 				bi++;
 				if(bit) {
 					node = node->right;
@@ -279,15 +279,15 @@ int main(int argc, char* argv[]) {
 		}
 		bitbuffer buffer(encoding_input_fd, bitbuffer::read);
 		// check that the correct encoding file was provided for our operation
-		if(buffer.peek() != !simple_huffman) {
+		if(buffer.peek_bit() != !simple_huffman) {
 			assert(encoding_input);
 			eprintf("Error: Incorrect encoding table provided for current operation; "
 					"expected %s, found %s.\n",
 					simple_huffman ? "simple Huffman" : "Markov-Huffman",
-					buffer.peek() ? "Markov-Huffman" : "simple Huffman");
+					buffer.peek_bit() ? "Markov-Huffman" : "simple Huffman");
 			exit(1);
 		}
-		if(buffer.peek() == 0) {
+		if(buffer.peek_bit() == 0) {
 			// simple huffman
 			coder = new huffman_table(buffer);
 		} else {
