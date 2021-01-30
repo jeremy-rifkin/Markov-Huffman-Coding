@@ -29,10 +29,12 @@ huffman_table::~huffman_table() {
 
 huffman_table& huffman_table::operator=(huffman_table&& other) {
 	if(this != &other) {
+		// if this huffman tree is not null, it'll be cleaned up in other's destructor
 		std::swap(huffman_tree, other.huffman_tree);
+		// copy array contents
 		for(int i = 0; i < 256; i++) {
-			std::swap(encoding_table[i], other.encoding_table[i]);
-			std::swap(decoding_lookup_table[i], other.decoding_lookup_table[i]);
+			encoding_table[i] = other.encoding_table[i];
+			decoding_lookup_table[i] = other.decoding_lookup_table[i];
 		}
 	}
 	return *this;
