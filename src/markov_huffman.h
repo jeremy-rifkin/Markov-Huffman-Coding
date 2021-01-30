@@ -5,13 +5,10 @@
 #include "huffman.h"
 
 class markov_huffman_table: public i_coding_provider {
-	// TODO: maybe don't heap-allocate this? This class itself is always allocated on the heap.
-	huffman_table* tables;
-	markov_huffman_table(): tables(new huffman_table[256]) {}
+	huffman_table tables[256];
 public:
 	markov_huffman_table(int* counts);
 	markov_huffman_table(bitbuffer& buffer);
-	~markov_huffman_table() override;
 	markov_huffman_table(const markov_huffman_table& other) = delete;
 	markov_huffman_table& operator=(const markov_huffman_table& other) = delete;
 	markov_huffman_table(markov_huffman_table&& other) = delete;

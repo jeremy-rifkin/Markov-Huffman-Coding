@@ -264,7 +264,6 @@ int main(int argc, char* argv[]) {
 	}
 
 	// open output file early to catch errors
-	// todo: just use access()?
 	FILE* output_fd = output == null ? stdout : fopen(output, "wb");
 	if(output_fd == null) {
 		eprintf("Error while opening output; %s.\n", strerror(errno));

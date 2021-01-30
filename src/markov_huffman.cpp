@@ -5,13 +5,13 @@
 #include "coding.h"
 #include "huffman.h"
 
-markov_huffman_table::markov_huffman_table(int* counts): markov_huffman_table() {
+markov_huffman_table::markov_huffman_table(int* counts) {
 	for(int i = 0; i < 256; i++) {
 		tables[i] = huffman_table(counts + 256 * i);
 	}
 }
 
-markov_huffman_table::markov_huffman_table(bitbuffer& buffer): markov_huffman_table() {
+markov_huffman_table::markov_huffman_table(bitbuffer& buffer) {
 	// pop leading indicator bit
 	buffer.pop_bit();
 	// load trees
@@ -21,10 +21,6 @@ markov_huffman_table::markov_huffman_table(bitbuffer& buffer): markov_huffman_ta
 		}
 		// else: no action required
 	}
-}
-
-markov_huffman_table::~markov_huffman_table() {
-	delete[] tables;
 }
 
 int markov_huffman_table::get_type() {

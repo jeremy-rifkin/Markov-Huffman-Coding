@@ -22,7 +22,6 @@ public:
 	// returns coder type
 	// 0 for simple huffman
 	// 1 for markov-huffman
-	// TODO: just read the simple_huffman flag in main?
 	virtual int get_type() = 0;
 	virtual void print_table() = 0;
 	virtual void print_tree() = 0;
