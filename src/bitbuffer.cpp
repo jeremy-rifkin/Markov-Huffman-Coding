@@ -114,13 +114,26 @@ unsigned char bitbuffer::pop_byte() {
 	}
 }
 
+unsigned char bitbuffer::try_pop() {
+	assert(mode == read);
+	if(!feof(file))
+		check_load();
+	if(bytes_read == 0)
+		assert(feof(file));
+	if(i < bytes_read) {
+		return pop();
+	} else {
+		return 0;
+	}
+}
+
 unsigned char bitbuffer::pop_rest(unsigned char byte, int byte_i) {
 	// TODO: optimize this or rely on the compiler figuring it out?
 	assert(mode == read);
 	assert(byte_i < 8 && byte_i >= 0);
 	unsigned char mask = 1 << (7 - byte_i);
 	while(mask) {
-		if(pop())
+		if(try_pop())
 			byte |= mask;
 		mask >>= 1;
 	}

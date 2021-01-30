@@ -95,20 +95,6 @@ void compress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 	// destruction here
 }
 
-void decompress_traversal_step(const int bit, unsigned char& prev, const tree_node*& node, bitbuffer& output_buffer) {
-	if(bit) {
-		node = node->right;
-	} else {
-		node = node->left;
-	}
-	assert(node != null);
-	if(!node->is_internal) {
-		output_buffer.push_byte(node->value);
-		prev = node->value;
-		node = null;
-	}
-}
-
 void decompress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 	bitbuffer input_buffer(input_fd, bitbuffer::read);
 	bitbuffer output_buffer(output_fd, bitbuffer::write);
@@ -125,10 +111,10 @@ void decompress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 		exit(1);
 	}
 	int remainder = header & 7;
+	// need to be careful with seeking in a file owned by the bitbuffer
 	long pos = ftell(input_fd);
 	fseek(input_fd, 0, SEEK_END);
-	int file_length = (ftell(input_fd) - 1) * 8;
-	int length = file_length - remainder; // data length in bits
+	int length = (ftell(input_fd) - 1) * 8 - remainder; // data length in bits
 	fseek(input_fd, pos, SEEK_SET);
 	// main decoder body
 	unsigned char prev = ' ';
@@ -137,19 +123,28 @@ void decompress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 	// the working byte and working byte index
 	unsigned char w = 0;
 	int wi = 0;
-	while(file_length - bi < 8 - wi) {
-	//while(bi < file_length - 8) {
+	while(bi < length) {
 		w = input_buffer.pop_rest(w, wi);
-		wi = 0;
 		const tree_node* node = coder->decoding_lookup(prev, w);
 		assert(node != null);
+		assert(node->depth >= 1);
 		if(node->is_internal) {
 			bi += 8;
 			// need to traverse
 			while(node != null) {
 				int bit = input_buffer.pop();
 				bi++;
-				decompress_traversal_step(bit, prev, node, output_buffer);
+				if(bit) {
+					node = node->right;
+				} else {
+					node = node->left;
+				}
+				assert(node != null);
+				if(!node->is_internal) {
+					output_buffer.push_byte(node->value);
+					prev = node->value;
+					node = null;
+				}
 			}
 			// reset working byte
 			w = 0;
@@ -158,35 +153,11 @@ void decompress(i_coding_provider* coder, FILE* input_fd, FILE* output_fd) {
 			output_buffer.push_byte(node->value);
 			prev = node->value;
 			w <<= node->depth;
-			wi = 8 - node->depth; //node->depth % 8;
+			wi = 8 - node->depth;
 			bi += node->depth;
 		}
 	}
-	// traverse / consume the remainder of the working byte
-	// need to traverse
-	const tree_node* node = null;
-	for(int i = 0; i < wi && bi < length; i++) {
-		int bit = (w >> (7 - i)) & 1;
-		bi++;
-		if(node == null) {
-			node = coder->get_decoding_tree(prev);
-		}
-		decompress_traversal_step(bit, prev, node, output_buffer);
-	}
-	// handle remaining data in file
-	while(bi < length) {
-		int bit = input_buffer.pop();
-		bi++;
-		if(node == null) {
-			node = coder->get_decoding_tree(prev);
-		}
-		decompress_traversal_step(bit, prev, node, output_buffer);
-	}
-	// make sure we didn't end part-way through a codeword
-	if(node != null) {
-		eprintf("Error: EOF found in the middle of a codeword. File may be corrupt.\n");
-		// intentionally not exiting here
-	}
+	assert(bi == length);
 }
 
 void construct_table(FILE* input_fd, std::function<void(unsigned char, unsigned char)> counter) {

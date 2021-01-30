@@ -46,11 +46,14 @@ public:
 	unsigned char pop(); // TODO: Rename push_bit/pop_bit/peek_bit
 	unsigned char pop_byte();
 	// pops enough bits to fill the rest of a byte
+	// if eof is reached, the byte is padded with zeroes
 	unsigned char pop_rest(unsigned char byte, int byte_i);
 	int get_bi();
 	// NOTE: This flush will round up to the nearest byte
 	void flush();
 private:
+	// pops a bit or returns 0 if eof is reached
+	unsigned char try_pop();
 	// loads data if buffer has been consumed
 	void check_load();
 	// loads data from file into the buffer
