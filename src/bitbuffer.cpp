@@ -114,6 +114,19 @@ unsigned char bitbuffer::pop_byte() {
 	}
 }
 
+unsigned char bitbuffer::pop_rest(unsigned char byte, int byte_i) {
+	// TODO: optimize this or rely on the compiler figuring it out?
+	assert(mode == read);
+	assert(byte_i < 8 && byte_i >= 0);
+	unsigned char mask = 1 << (7 - byte_i);
+	while(mask) {
+		if(pop())
+			byte |= mask;
+		mask >>= 1;
+	}
+	return byte;
+}
+
 int bitbuffer::get_bi() {
 	return bi;
 }

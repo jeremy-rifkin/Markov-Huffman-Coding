@@ -51,4 +51,3 @@ int tree_node::print_nodes(const tree_node* node, int n) const {
 	}
 	return ret;
 }
-

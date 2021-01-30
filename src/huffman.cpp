@@ -32,6 +32,7 @@ huffman_table& huffman_table::operator=(huffman_table&& other) {
 		std::swap(huffman_tree, other.huffman_tree);
 		for(int i = 0; i < 256; i++) {
 			std::swap(encoding_table[i], other.encoding_table[i]);
+			std::swap(decoding_lookup_table[i], other.decoding_lookup_table[i]);
 		}
 	}
 	return *this;
@@ -94,27 +95,28 @@ void huffman_table::build_huffman_encoding_table() {
 	build_huffman_encoding_table(huffman_tree, working_descriptor, 0);
 }
 
-void huffman_table::build_huffman_encoding_table(tree_node* node, encoding_descriptor& descriptor, int height) {
+void huffman_table::build_huffman_encoding_table(tree_node* node, encoding_descriptor& descriptor, int depth) {
 	// This function does two things:
 	// - Populates the encoding table.
 	// - Builds the decoding lookup table.
 	// Note: height should always be equal to the descriptor length
 	if(node == null) return;
+	node->depth = depth;
 	if(node->is_internal) {
 		descriptor.push_bit(0);
-		build_huffman_encoding_table(node->left, descriptor, height + 1);
+		build_huffman_encoding_table(node->left, descriptor, depth + 1);
 		descriptor.pop_bit();
 		descriptor.push_bit(1);
-		build_huffman_encoding_table(node->right, descriptor, height + 1);
+		build_huffman_encoding_table(node->right, descriptor, depth + 1);
 		descriptor.pop_bit();
-		if(height == 8) {
+		if(depth == 8) {
 			decoding_lookup_table[descriptor.encoding[0]] = node;
 		}
 	} else {
 		encoding_table[node->value] = descriptor;
-		if(height <= 8) {
+		if(depth <= 8) {
 			unsigned char codeword = descriptor.encoding[0];
-			for(int i = 0; i < 1 << 8 - height; i++) {
+			for(int i = 0; i < 1 << 8 - depth; i++) {
 				decoding_lookup_table[codeword + i] = node;
 			}
 		}

@@ -29,7 +29,7 @@ public:
 	void write_coding_tree(bitbuffer& buffer) override;
 private:
 	void build_huffman_encoding_table();
-	void build_huffman_encoding_table(tree_node* node, encoding_descriptor& descriptor, int height);
+	void build_huffman_encoding_table(tree_node* node, encoding_descriptor& descriptor, int depth);
 	void build(int* counts);
 	tree_node* build_tree_from_buffer(bitbuffer& buffer);
 	void write_coding_tree_traversal(tree_node* node, bitbuffer& buffer);

@@ -12,14 +12,15 @@ struct tree_node {
 	bool is_internal;
 	unsigned char value;
 	int weight;
-	// height is used cosmetically but also indicates the codeword length
+	// height is used cosmetically
 	int height;
-public:
+	// but also indicates the codeword length
+	int depth;
 	tree_node(tree_node* l, tree_node* r):
 		left(l),    right(r),    is_internal(true),  weight(l->weight + r->weight),
-		height(std::max(l->height, r->height) + 1) {}
+		height(std::max(l->height, r->height) + 1), depth(-1) {}
 	tree_node(unsigned char v, int w):
-		left(null), right(null), is_internal(false), value(v), weight(w), height(0) {}
+		left(null), right(null), is_internal(false), value(v), weight(w), height(0), depth(-1) {}
 	~tree_node() {
 		delete left;
 		delete right;

@@ -11,9 +11,6 @@ class encoding_descriptor;
 
 // This is an abstraction for working with bitstreams and sub-byte data storage.
 // This is a handy abstraction for use when reading/writing the encoding trees to files.
-// TODO: Maybe rework the encode/decode logic to make use of this abstraction? This was written
-// after the compression logic. Would need to make this buffer more robust to get the same
-// performance.
 
 // Note:
 // - This is a unidirection buffer.
@@ -48,6 +45,8 @@ public:
 	unsigned char peek(); // TODO: Rename push_bit/pop_bit/peek_bit
 	unsigned char pop(); // TODO: Rename push_bit/pop_bit/peek_bit
 	unsigned char pop_byte();
+	// pops enough bits to fill the rest of a byte
+	unsigned char pop_rest(unsigned char byte, int byte_i);
 	int get_bi();
 	// NOTE: This flush will round up to the nearest byte
 	void flush();

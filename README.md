@@ -126,14 +126,17 @@ markov-huffman compressed -e encoding 2>/dev/null | tee decompressed.txt
 
 ## Performance
 
-This project is a proof of concept. There is certainly room for performance improvement in the
-implementation of this algorithm.
+This project is a proof of concept. There is room for performance improvement in the implementation
+of this algorithm, however, this project is pretty good.
 
-One big target for performance improvement is in the codeword decoder which could use a lookup
-table. A simple 8-bit or 16-bit lookup table would be feasible, however, there could conceivably be
-cases where there are rare codewords longer than 8 or 16 bits. Setting up a lookup table that can
-work in all scenarios would require special handling for codewords exceeding the table key size or,
-more elegantly, creating a multi-level lookup table.
+Lookup tables are often used to speedup the Huffman decoding process. 8-bit or 16-bit lookup tables
+would be feasible memory wise (though 16-bit lookup tables would be very memory intensive in the
+Markov-Huffman system), however we need a way of handling codewords longer than the table key size.
+In this project I've implemented 8-bit lookup tables which should provide a good balance between
+memory, complexity, and speedup. The vast majority of codewords are <= 8 bits long, and the lookup
+table enables these codewords to be decoded in one step. For the rare codewords longer than 8 bits,
+the decoder falls back on tree traversal and the lookup table is able to skip past 8 levels of the
+tree.
 
 ## Overhead
 
