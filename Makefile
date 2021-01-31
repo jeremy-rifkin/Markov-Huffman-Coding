@@ -1,4 +1,5 @@
 # based off of https://spin.atomicobject.com/2016/08/26/makefile-c-projects/
+MAKEFLAGS += -j$(NPROCS)
 BUILD_DIR = bin/obj
 SRC_DIRS = src
 ifeq ($(OS),Windows_NT)
