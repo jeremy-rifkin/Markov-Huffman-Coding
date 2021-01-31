@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string>
 
+#include "bitbuffer.h"
 #include "coding.h"
 #include "min_pq.h"
 #include "tree.h"

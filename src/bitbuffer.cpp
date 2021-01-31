@@ -2,7 +2,6 @@
 
 #include <assert.h>
 #include <stdio.h>
-#include <vector>
 
 #include "coding.h"
 #include "utils.h"

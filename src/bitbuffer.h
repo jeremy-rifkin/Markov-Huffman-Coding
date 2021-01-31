@@ -2,7 +2,6 @@
 #define BITBUFFER_H
 
 #include <stdio.h>
-#include <vector>
 
 #define BUFFER_SIZE 32768
 

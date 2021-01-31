@@ -1,19 +1,15 @@
-#include <algorithm>
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <vector>
 #include <functional>
 
 #include "bitbuffer.h"
 #include "coding.h"
 #include "huffman.h"
 #include "markov_huffman.h"
-#include "min_pq.h"
 #include "utils.h"
-#include "tree.h"
 
 #undef BUFFER_SIZE // previously defined in bitbuffer.h
 #define BUFFER_SIZE 32768

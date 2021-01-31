@@ -1,9 +1,10 @@
 #include "markov_huffman.h"
 #include <stdio.h>
-#include <stdlib.h>
 
+#include "bitbuffer.h"
 #include "coding.h"
 #include "huffman.h"
+#include "tree.h"
 
 markov_huffman_table::markov_huffman_table(int* counts) {
 	for(int i = 0; i < 256; i++) {

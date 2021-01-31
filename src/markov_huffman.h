@@ -1,8 +1,10 @@
 #ifndef MARKOV_HUFFMAN_H
 #define MARKOV_HUFFMAN_H
 
+#include "bitbuffer.h"
 #include "coding.h"
 #include "huffman.h"
+#include "tree.h"
 
 class markov_huffman_table: public i_coding_provider {
 	huffman_table tables[256];

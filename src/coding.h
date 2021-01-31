@@ -1,7 +1,6 @@
 #ifndef CODING_H
 #define CODING_H
 
-#include <stdio.h>
 #include <vector>
 
 #include "bitbuffer.h"
